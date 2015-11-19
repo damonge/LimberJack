@@ -1,5 +1,6 @@
 #include "common.h"
 
+/*
 #define N_CHI 1000
 static double transfer_cmblens_nolim(int l,double k,RunParams *par)
 {
@@ -18,6 +19,7 @@ static double transfer_cmblens_nolim(int l,double k,RunParams *par)
 
   return ret*(par->prefac_lensing)*dchi*l*(l+1)/k*sqrt((2*l+1.)/M_PI);
 }
+*/
 
 static double transfer_dens(int l,double k,RunParams *par)
 {
