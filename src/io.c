@@ -86,8 +86,10 @@ int read_parameter_file(char *fname,RunParams *par)
       sprintf(par->fname_bias,"%s",s2);
     else if(!strcmp(s1,"sbias_fname="))
       sprintf(par->fname_sbias,"%s",s2);
-    else if(!strcmp(s1,"pk_fname="))
-      sprintf(par->fname_pk,"%s",s2);
+    else if(!strcmp(s1,"pk_l_fname="))
+      sprintf(par->fname_pk_l,"%s",s2);
+    else if(!strcmp(s1,"pk_nl_fname="))
+      sprintf(par->fname_pk_nl,"%s",s2);
     else if(!strcmp(s1,"prefix_out="))
       sprintf(par->prefix_out,"%s",s2);
     else

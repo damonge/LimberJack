@@ -44,7 +44,8 @@ RunParams *param_new(void)
   sprintf(par->fname_window,"default");
   sprintf(par->fname_bias,"default");
   sprintf(par->fname_sbias,"default");
-  sprintf(par->fname_pk,"default");
+  sprintf(par->fname_pk_l,"default");
+  sprintf(par->fname_pk_nl,"default");
   sprintf(par->prefix_out,"default");
   par->lmax=100;
   par->cpar=NULL;

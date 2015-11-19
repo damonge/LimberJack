@@ -12,7 +12,8 @@ static double cl_integrand(double lk,void *params)
   double d1,d2;
   IntPar *p=(IntPar *)params;
   double k=pow(10.,lk);
-  double pk=csm_Pk_linear_0(p->par->cpar,k);
+  //  double pk=csm_Pk_linear_0(p->par->cpar,k);
+  double pk=csm_Pk_nonlinear(p->par->cpar,k);
   d1=transfer_wrap(p->l,k,p->par,p->tr1);
   if(!strcmp(p->tr1,p->tr2))
     d2=d1;

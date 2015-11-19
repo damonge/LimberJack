@@ -206,9 +206,12 @@ RunParams *init_params(char *fname_ini)
   if(par->do_cmblens)
     par->cl_cc=(double *)dam_malloc((par->lmax+1)*sizeof(double));
     
-  if(par->do_nc || par->do_shear || par->do_cmblens)
-    csm_set_linear_pk(par->cpar,par->fname_pk,D_LKMIN,D_LKMAX,0.01,par->ns,par->s8);
-  
+  if(par->do_nc || par->do_shear || par->do_cmblens) {
+    csm_set_linear_pk(par->cpar,par->fname_pk_l,D_LKMIN,D_LKMAX,0.01,par->ns,par->s8);
+    csm_set_nonlinear_pk(par->cpar,par->fname_pk_nl);
+    csm_set_Pk_params(par->cpar,0,1,1,4);
+  }
+
   if(par->do_nc || par->do_shear) {
     printf("Reading window function %s\n",par->fname_window);
     fi=dam_fopen(par->fname_window,"r");

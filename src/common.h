@@ -25,7 +25,8 @@ typedef struct {
   char fname_window[256];
   char fname_bias[256];
   char fname_sbias[256];
-  char fname_pk[256];
+  char fname_pk_l[256];
+  char fname_pk_nl[256];
   char prefix_out[256];
   int lmax;
   Csm_params *cpar;
