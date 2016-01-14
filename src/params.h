@@ -5,6 +5,6 @@
 #define D_Z_REC 1090.
 
 #define D_LKMIN -6.
-#define D_LKMAX 1.
+#define D_LKMAX 3.
 
 #endif //_PARAMS_

@@ -41,11 +41,14 @@ RunParams *param_new(void)
   par->wa=0.;
   par->ns=0.96;
   par->s8=0.8;
-  sprintf(par->fname_window,"default");
+  par->fname_window=dam_malloc(2*sizeof(char *));
+  par->fname_window[0]=dam_malloc(256*sizeof(char));
+  par->fname_window[1]=dam_malloc(256*sizeof(char));
+  sprintf(par->fname_window[0],"default");
+  sprintf(par->fname_window[1],"default");
   sprintf(par->fname_bias,"default");
   sprintf(par->fname_sbias,"default");
-  sprintf(par->fname_pk_l,"default");
-  sprintf(par->fname_pk_nl,"default");
+  sprintf(par->fname_pk,"default");
   sprintf(par->prefix_out,"default");
   par->lmax=100;
   par->cpar=NULL;
@@ -66,16 +69,39 @@ RunParams *param_new(void)
   par->do_nc=0;
   par->do_shear=0;
   par->do_cmblens=0;
+  par->do_isw=0;
   par->has_bg=0;
   par->has_dens=0;
   par->has_rsd=0;
   par->has_lensing=0;
   par->cl_dd=NULL;
-  par->cl_dl=NULL;
+  par->cl_d1l2=NULL;
+  par->cl_d2l1=NULL;
   par->cl_dc=NULL;
+  par->cl_di=NULL;
   par->cl_ll=NULL;
   par->cl_lc=NULL;
+  par->cl_li=NULL;
   par->cl_cc=NULL;
+  par->cl_ci=NULL;
+  par->cl_ii=NULL;
+  par->do_w_theta=0;
+  par->th_min=0;
+  par->th_max=10.;
+  par->n_th=15;
+  par->n_th_logint=5;
+  par->wt_dd=NULL;
+  par->wt_d1l2=NULL;
+  par->wt_d2l1=NULL;
+  par->wt_dc=NULL;
+  par->wt_di=NULL;
+  par->wt_ll_pp=NULL;
+  par->wt_ll_mm=NULL;
+  par->wt_lc=NULL;
+  par->wt_li=NULL;
+  par->wt_cc=NULL;
+  par->wt_ci=NULL;
+  par->wt_ii=NULL;
   return par;
 }
 
@@ -89,28 +115,72 @@ void param_free(RunParams *par)
     spline_free(par->gfofchi);
     spline_free(par->fgofchi);
   }
-  if(par->do_nc || par->do_shear)
-    spline_free(par->wind_0);
+  if(par->do_nc || par->do_shear) {
+    spline_free(par->wind_0[0]);
+    spline_free(par->wind_0[1]);
+    free(par->wind_0);
+  }
   if(par->do_nc) {
     free(par->cl_dd);
-    if(par->do_shear)
-      free(par->cl_dl);
-    if(par->do_cmblens)
+    if(par->do_w_theta)
+      free(par->wt_dd);
+    if(par->do_shear) {
+      free(par->cl_d1l2);
+      free(par->cl_d2l1);
+      if(par->do_w_theta) {
+	free(par->wt_d1l2);
+	free(par->wt_d2l1);
+      }
+    }
+    if(par->do_cmblens) {
       free(par->cl_dc);
+      if(par->do_w_theta)
+	free(par->wt_dc);
+    }
+    if(par->do_isw) {
+      free(par->cl_di);
+      if(par->do_w_theta)
+	free(par->wt_di);
+    }
     if(par->has_dens)
       spline_free(par->bias);
     if(par->has_lensing) {
       spline_free(par->sbias);
-      spline_free(par->wind_M);
+      spline_free(par->wind_M[0]);
+      spline_free(par->wind_M[1]);
+      free(par->wind_M);
     }
   }
   if(par->do_shear) {
-    spline_free(par->wind_L);
+    spline_free(par->wind_L[0]);
+    spline_free(par->wind_L[1]);
+    free(par->wind_L);
     free(par->cl_ll);
-    if(par->do_cmblens)
+    if(par->do_w_theta) {
+      free(par->wt_ll_pp);
+      free(par->wt_ll_mm);
+    }
+    if(par->do_cmblens) {
       free(par->cl_lc);
+      if(par->do_w_theta)
+	free(par->wt_lc);
+    }
+    if(par->do_isw) {
+      free(par->cl_li);
+      if(par->do_w_theta)
+	free(par->wt_li);
+    }
   }
-  if(par->do_cmblens)
+  if(par->do_cmblens) {
     free(par->cl_cc);
+    if(par->do_isw) {
+      free(par->cl_ci);
+      if(par->do_w_theta)
+	free(par->wt_ci);
+    }
+  }
+  if(par->do_isw)
+    free(par->cl_ii);
+
   free(par);
 }

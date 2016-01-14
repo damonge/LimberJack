@@ -65,6 +65,7 @@ static double a_of_chi(double chi,Csm_params *cpar,double *a_old,gsl_root_fdfsol
 typedef struct {
   RunParams *par;
   double chi;
+  int i_window;
 } IntLensPar;
 
 static double integrand_wm(double chip,void *params)
@@ -72,7 +73,7 @@ static double integrand_wm(double chip,void *params)
   IntLensPar *p=(IntLensPar *)params;
   double chi=p->chi;
   double z=spline_eval(chip,p->par->zofchi);
-  double pz=spline_eval(z,p->par->wind_0);
+  double pz=spline_eval(z,p->par->wind_0[p->i_window]);
   double sz=spline_eval(z,p->par->sbias);
   double h=spline_eval(chip,p->par->hofchi);
 
@@ -82,7 +83,7 @@ static double integrand_wm(double chip,void *params)
     return h*pz*0.5*(2-5*sz)*(chip-chi)/chip;
 }
 
-static double window_magnification(double chi,RunParams *par)
+static double window_magnification(double chi,RunParams *par,int i_window)
 {
   double result,eresult;
   IntLensPar ip;
@@ -91,6 +92,7 @@ static double window_magnification(double chi,RunParams *par)
 
   ip.par=par;
   ip.chi=chi;
+  ip.i_window=i_window;
   F.function=&integrand_wm;
   F.params=&ip;
   gsl_integration_qag(&F,chi,par->chi_horizon,0,1E-4,1000,GSL_INTEG_GAUSS41,w,&result,&eresult);
@@ -103,7 +105,7 @@ static double integrand_wl(double chip,void *params)
   IntLensPar *p=(IntLensPar *)params;
   double chi=p->chi;
   double z=spline_eval(chip,p->par->zofchi);
-  double pz=spline_eval(z,p->par->wind_0);
+  double pz=spline_eval(z,p->par->wind_0[p->i_window]);
   double h=spline_eval(chip,p->par->hofchi);
 
   if(chi==0)
@@ -112,7 +114,7 @@ static double integrand_wl(double chip,void *params)
     return h*pz*(chip-chi)/chip;
 }
 
-static double window_lensing(double chi,RunParams *par)
+static double window_lensing(double chi,RunParams *par,int i_window)
 {
   double result,eresult;
   IntLensPar ip;
@@ -121,6 +123,7 @@ static double window_lensing(double chi,RunParams *par)
 
   ip.par=par;
   ip.chi=chi;
+  ip.i_window=i_window;
   F.function=&integrand_wl;
   F.params=&ip;
   gsl_integration_qag(&F,chi,par->chi_horizon,0,1E-4,1000,GSL_INTEG_GAUSS41,w,&result,&eresult);
@@ -128,10 +131,62 @@ static double window_lensing(double chi,RunParams *par)
   return result;
 }
 
+#ifdef _DEBUG
+#define NZ_BG 1024
+static void print_bg(RunParams *par)
+{
+  int ii,icol;
+  char fname[256];
+  FILE *fo;
+  double zmax=fmax(par->wind_0[0]->xf,par->wind_0[1]->xf);
+  sprintf(fname,"%s_bg.db",par->prefix_out);
+  fo=dam_fopen(fname,"w");
+  fprintf(fo,"[0]z [1]chi [2]zb [3]a [4]h [5]gf [6]fg ");
+  icol=6;
+  if(par->do_nc) {
+    fprintf(fo,"[%d]w0_1 [%d]w0_2 ",icol+1,icol+2);
+    icol+=2;
+    if(par->has_lensing) {
+      fprintf(fo,"[%d]wM_1 [%d]wM_2 ",icol+1,icol+2);
+      icol+=2;
+    }
+  }
+  if(par->do_shear) {
+    fprintf(fo,"[%d]wL_1 [%d]wL_2 ",icol+1,icol+2);
+    icol+=2;
+  }
+  fprintf(fo,"\n");
+  for(ii=0;ii<NZ_BG;ii++) {
+    double z=zmax*(ii+0.5)/NZ_BG;
+    double chi=csm_radial_comoving_distance(par->cpar,1./(1+z));
+    fprintf(fo,"%lE %lE ",z,chi);
+    fprintf(fo,"%lE ",spline_eval(chi,par->zofchi));
+    fprintf(fo,"%lE ",spline_eval(chi,par->aofchi));
+    fprintf(fo,"%lE ",spline_eval(chi,par->hofchi));
+    fprintf(fo,"%lE ",spline_eval(chi,par->gfofchi));
+    fprintf(fo,"%lE ",spline_eval(chi,par->fgofchi));
+    if(par->do_nc) {
+      fprintf(fo,"%lE ",spline_eval(z,par->wind_0[0]));
+      fprintf(fo,"%lE ",spline_eval(z,par->wind_0[1]));
+      if(par->has_lensing) {
+	fprintf(fo,"%lE ",spline_eval(chi,par->wind_M[0]));
+	fprintf(fo,"%lE ",spline_eval(chi,par->wind_M[1]));
+      }
+    }
+    if(par->do_shear) {
+      fprintf(fo,"%lE ",spline_eval(chi,par->wind_L[0]));
+      fprintf(fo,"%lE ",spline_eval(chi,par->wind_L[1]));
+    }
+    fprintf(fo,"\n");
+  }
+  fclose(fo);
+}
+#endif //_DEBUG
+
 RunParams *init_params(char *fname_ini)
 {
   FILE *fi;
-  int n,ii,stat;
+  int n,ii,stat,ibin;
   double *x,*a,*y,dchi;
   RunParams *par=param_new();
   par->cpar=csm_params_new();
@@ -193,52 +248,92 @@ RunParams *init_params(char *fname_ini)
   //Allocate power spectra
   if(par->do_nc) {
     par->cl_dd=(double *)dam_malloc((par->lmax+1)*sizeof(double));
-    if(par->do_shear)
-      par->cl_dl=(double *)dam_malloc((par->lmax+1)*sizeof(double));
+    if(par->do_shear) {
+      par->cl_d1l2=(double *)dam_malloc((par->lmax+1)*sizeof(double));
+      par->cl_d2l1=(double *)dam_malloc((par->lmax+1)*sizeof(double));
+    }
     if(par->do_cmblens)
       par->cl_dc=(double *)dam_malloc((par->lmax+1)*sizeof(double));
+    if(par->do_isw)
+      par->cl_di=(double *)dam_malloc((par->lmax+1)*sizeof(double));
   }
   if(par->do_shear) {
     par->cl_ll=(double *)dam_malloc((par->lmax+1)*sizeof(double));
     if(par->do_cmblens)
       par->cl_lc=(double *)dam_malloc((par->lmax+1)*sizeof(double));
+    if(par->do_isw)
+      par->cl_li=(double *)dam_malloc((par->lmax+1)*sizeof(double));
   }
-  if(par->do_cmblens)
+  if(par->do_cmblens) {
     par->cl_cc=(double *)dam_malloc((par->lmax+1)*sizeof(double));
-    
-  if(par->do_nc || par->do_shear || par->do_cmblens) {
-    csm_set_linear_pk(par->cpar,par->fname_pk_l,D_LKMIN,D_LKMAX,0.01,par->ns,par->s8);
-    csm_set_nonlinear_pk(par->cpar,par->fname_pk_nl);
-    csm_set_Pk_params(par->cpar,0,1,1,4);
+    if(par->do_isw)
+      par->cl_ci=(double *)dam_malloc((par->lmax+1)*sizeof(double));
   }
+  if(par->do_isw)
+    par->cl_ii=(double *)dam_malloc((par->lmax+1)*sizeof(double));
 
-  if(par->do_nc || par->do_shear) {
-    printf("Reading window function %s\n",par->fname_window);
-    fi=dam_fopen(par->fname_window,"r");
-    n=dam_linecount(fi); rewind(fi);
-    //Read unnormalized window
-    x=(double *)dam_malloc(n*sizeof(double));
-    y=(double *)dam_malloc(n*sizeof(double));
-    for(ii=0;ii<n;ii++) {
-      stat=fscanf(fi,"%lE %lE",&(x[ii]),&(y[ii]));
-      if(stat!=2)
-	dam_report_error(1,"Error reading file, line %d\n",ii+1);
+  if(par->do_w_theta) {
+    if(par->do_nc) {
+      par->wt_dd=(double *)dam_malloc(par->n_th*sizeof(double));
+      if(par->do_shear) {
+	par->wt_d1l2=(double *)dam_malloc(par->n_th*sizeof(double));
+	par->wt_d2l1=(double *)dam_malloc(par->n_th*sizeof(double));
+      }
+      if(par->do_cmblens)
+	par->wt_dc=(double *)dam_malloc(par->n_th*sizeof(double));
+      if(par->do_isw)
+	par->wt_di=(double *)dam_malloc(par->n_th*sizeof(double));
     }
-    fclose(fi);
-    par->wind_0=spline_init(n,x,y,0.,0.);
-    //Normalize window
-    double norm,enorm;
-    gsl_function F;
-    gsl_integration_workspace *w=gsl_integration_workspace_alloc(1000);
-    F.function=&speval_bis;
-    F.params=par->wind_0;
-    gsl_integration_qag(&F,x[0],x[n-1],0,1E-4,1000,GSL_INTEG_GAUSS41,w,&norm,&enorm);
-    gsl_integration_workspace_free(w);
-    for(ii=0;ii<n;ii++)
-      y[ii]/=norm;
-    spline_free(par->wind_0);
-    par->wind_0=spline_init(n,x,y,0.,0.);
-    free(x); free(y);
+    if(par->do_shear) {
+      par->wt_ll_pp=(double *)dam_malloc(par->n_th*sizeof(double));
+      par->wt_ll_mm=(double *)dam_malloc(par->n_th*sizeof(double));
+      if(par->do_cmblens)
+	par->wt_lc=(double *)dam_malloc(par->n_th*sizeof(double));
+      if(par->do_isw)
+	par->wt_li=(double *)dam_malloc(par->n_th*sizeof(double));
+    }
+    if(par->do_cmblens) {
+      par->wt_cc=(double *)dam_malloc(par->n_th*sizeof(double));
+      if(par->do_isw)
+	par->wt_ci=(double *)dam_malloc(par->n_th*sizeof(double));
+    }
+    if(par->do_isw)
+      par->wt_ii=(double *)dam_malloc(par->n_th*sizeof(double));
+  }
+    
+  if(par->do_nc || par->do_shear || par->do_cmblens || par->do_isw)
+    csm_set_linear_pk(par->cpar,par->fname_pk,D_LKMIN,D_LKMAX,0.01,par->ns,par->s8);
+  
+  if(par->do_nc || par->do_shear) {
+    par->wind_0=dam_malloc(2*sizeof(SplPar *));
+    for(ibin=0;ibin<2;ibin++) {
+      printf("Reading window function %s\n",par->fname_window[ibin]);
+      fi=dam_fopen(par->fname_window[ibin],"r");
+      n=dam_linecount(fi); rewind(fi);
+      //Read unnormalized window
+      x=(double *)dam_malloc(n*sizeof(double));
+      y=(double *)dam_malloc(n*sizeof(double));
+      for(ii=0;ii<n;ii++) {
+	stat=fscanf(fi,"%lE %lE",&(x[ii]),&(y[ii]));
+	if(stat!=2)
+	  dam_report_error(1,"Error reading file, line %d\n",ii+1);
+      }
+      fclose(fi);
+      par->wind_0[ibin]=spline_init(n,x,y,0.,0.);
+      //Normalize window
+      double norm,enorm;
+      gsl_function F;
+      gsl_integration_workspace *w=gsl_integration_workspace_alloc(1000);
+      F.function=&speval_bis;
+      F.params=par->wind_0[ibin];
+      gsl_integration_qag(&F,x[0],x[n-1],0,1E-4,1000,GSL_INTEG_GAUSS41,w,&norm,&enorm);
+      gsl_integration_workspace_free(w);
+      for(ii=0;ii<n;ii++)
+      	y[ii]/=norm;
+      spline_free(par->wind_0[ibin]);
+      par->wind_0[ibin]=spline_init(n,x,y,0.,0.);
+      free(x); free(y);
+    }
   }
 
   if(par->do_nc) {
@@ -276,66 +371,75 @@ RunParams *init_params(char *fname_ini)
       free(x); free(y);
     
       printf("Computing lensing magnification window function\n");
-      double dchi_here;
-      double zmax=par->wind_0->xf;
-      double chimax=csm_radial_comoving_distance(par->cpar,1./(1+zmax));
-      n=(int)(chimax/par->dchi)+1;
-      dchi_here=chimax/n;
+      par->wind_M=dam_malloc(2*sizeof(SplPar *));
+      for(ibin=0;ibin<2;ibin++) {
+	double dchi_here;
+	double zmax=par->wind_0[ibin]->xf;
+	double chimax=csm_radial_comoving_distance(par->cpar,1./(1+zmax));
+	n=(int)(chimax/par->dchi)+1;
+	dchi_here=chimax/n;
       
-      x=(double *)dam_malloc(n*sizeof(double));
-      y=(double *)dam_malloc(n*sizeof(double));
+	x=(double *)dam_malloc(n*sizeof(double));
+	y=(double *)dam_malloc(n*sizeof(double));
 
 #ifdef _HAVE_OMP
-#pragma omp parallel default(none) shared(n,x,y,par,dchi_here) 
-      {
+#pragma omp parallel default(none) shared(n,x,y,par,dchi_here,ibin) 
+	{
 #endif //_HAVE_OMP
-	int j;
-
+	  int j;
+	  
 #ifdef _HAVE_OMP
 #pragma omp for	
 #endif //_HAVE_OMP
-	for(j=0;j<n;j++) {
-	  x[j]=dchi_here*j;
-	  y[j]=window_magnification(x[j],par);
-	} //end omp for
+	  for(j=0;j<n;j++) {
+	    x[j]=dchi_here*j;
+	    y[j]=window_magnification(x[j],par,ibin);
+	  } //end omp for
 #ifdef _HAVE_OMP
-      } //end omp parallel
+	} //end omp parallel
 #endif //_HAVE_OMP
-      par->wind_M=spline_init(n,x,y,y[0],0);
-      free(x); free(y);
+	par->wind_M[ibin]=spline_init(n,x,y,y[0],0);
+	free(x); free(y);
+      }
     }
   }
 
   if(par->do_shear) {
     printf("Computing lensing window function\n");
-    double dchi_here;
-    double zmax=par->wind_0->xf;
-    double chimax=csm_radial_comoving_distance(par->cpar,1./(1+zmax));
-    n=(int)(chimax/par->dchi)+1;
-    dchi_here=chimax/n;
+    par->wind_L=dam_malloc(2*sizeof(SplPar *));
+    for(ibin=0;ibin<2;ibin++) {
+      double dchi_here;
+      double zmax=par->wind_0[ibin]->xf;
+      double chimax=csm_radial_comoving_distance(par->cpar,1./(1+zmax));
+      n=(int)(chimax/par->dchi)+1;
+      dchi_here=chimax/n;
     
-    x=(double *)dam_malloc(n*sizeof(double));
-    y=(double *)dam_malloc(n*sizeof(double));
+      x=(double *)dam_malloc(n*sizeof(double));
+      y=(double *)dam_malloc(n*sizeof(double));
     
 #ifdef _HAVE_OMP
-#pragma omp parallel default(none) shared(n,x,y,par,dchi_here) 
-    {
+#pragma omp parallel default(none) shared(n,x,y,par,dchi_here,ibin) 
+      {
 #endif //_HAVE_OMP
-      int j;
-      
+	int j;
+	
 #ifdef _HAVE_OMP
 #pragma omp for	
 #endif //_HAVE_OMP
-      for(j=0;j<n;j++) {
-	x[j]=dchi_here*j;
-	y[j]=window_lensing(x[j],par);
-      }
+	for(j=0;j<n;j++) {
+	  x[j]=dchi_here*j;
+	  y[j]=window_lensing(x[j],par,ibin);
+	}
 #ifdef _HAVE_OMP
-    } //end omp parallel
+      } //end omp parallel
 #endif //_HAVE_OMP
-    par->wind_L=spline_init(n,x,y,y[0],0);
-    free(x); free(y);
+      par->wind_L[ibin]=spline_init(n,x,y,y[0],0);
+      free(x); free(y);
+    }
   }
 
+#ifdef _DEBUG
+  print_bg(par);
+#endif //_DEBUG
   return par;
 }
