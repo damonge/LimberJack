@@ -3,15 +3,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <string.h>
 #include <math.h>
 #include <gsl/gsl_spline.h>
 #include <gsl/gsl_roots.h>
 #include "params.h"
-#include "dam_utils.h"
 #include "cosmo_mad.h"
-
-#define DTOR 0.01745329251
 
 typedef struct {
   gsl_interp_accel *intacc;
@@ -85,6 +83,11 @@ typedef struct {
 } RunParams;
 
 //Defined in common.c
+int my_linecount(FILE *f);
+void report_error(int level,char *fmt,...);
+void *my_malloc(size_t size);
+void *my_calloc(size_t nmemb,size_t size);
+FILE *my_fopen(const char *path,const char *mode);
 SplPar *spline_init(int n,double *x,double *y,double y0,double yf);
 double spline_eval(double x,SplPar *spl);
 void spline_free(SplPar *spl);

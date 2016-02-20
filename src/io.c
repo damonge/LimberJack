@@ -8,7 +8,7 @@ static void write_wt_single(int n_th,int n_th_logint,int th_min,int th_max,int d
   char fname[256];
 
   sprintf(fname,"%s_wt_%s.txt",prefix,suffix);
-  fo=dam_fopen(fname,"w");
+  fo=my_fopen(fname,"w");
   for(ith=0;ith<n_th;ith++) {
     double th;
     if(do_logbin)
@@ -27,7 +27,7 @@ static void write_cl_single(int lmax,double *cl,char *prefix,char *suffix)
   char fname[256];
 
   sprintf(fname,"%s_cl_%s.txt",prefix,suffix);
-  fo=dam_fopen(fname,"w");
+  fo=my_fopen(fname,"w");
   for(l=0;l<=lmax;l++)
     fprintf(fo,"%d %lE\n",l,cl[l]);
   fclose(fo);
@@ -115,16 +115,16 @@ int read_parameter_file(char *fname,RunParams *par)
   int n_lin,ii;
 
   //Read parameters from file
-  fi=dam_fopen(fname,"r");
-  n_lin=dam_linecount(fi); rewind(fi);
+  fi=my_fopen(fname,"r");
+  n_lin=my_linecount(fi); rewind(fi);
   for(ii=0;ii<n_lin;ii++) {
     char s0[512],s1[64],s2[256];
     if(fgets(s0,sizeof(s0),fi)==NULL)
-      dam_report_error(1,"Error reading line %d, file %s\n",ii+1,fname);
+      report_error(1,"Error reading line %d, file %s\n",ii+1,fname);
     if((s0[0]=='#')||(s0[0]=='\n')||(s0[0]==' ')) continue;
     int sr=sscanf(s0,"%s %s",s1,s2);
     if(sr!=2)
-      dam_report_error(1,"Error reading line %d, file %s\n",ii+1,fname);
+      report_error(1,"Error reading line %d, file %s\n",ii+1,fname);
 
     if(!strcmp(s1,"omega_m="))
       par->om=atof(s2);
@@ -185,7 +185,7 @@ int read_parameter_file(char *fname,RunParams *par)
     else if(!strcmp(s1,"prefix_out="))
       sprintf(par->prefix_out,"%s",s2);
     else
-      dam_report_error(0,"Unknown parameter %s\n",s1);
+      report_error(0,"Unknown parameter %s\n",s1);
   }
   fclose(fi);
 

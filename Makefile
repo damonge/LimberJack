@@ -15,16 +15,13 @@ GSL_LIB = -L/home/damonge/lib
 #COSMOMAD
 CSM_INC =
 CSM_LIB =
-#DAM_UTILS
-DAM_INC =
-DAM_LIB =
 #
 ########## End of user-definable ##########
 
 OPTIONS += $(DEFINEFLAGS)
 
 INC_ALL = -I./src $(GSL_INC) $(CSM_INC) $(DAM_INC)
-LIB_ALL = $(GSL_LIB) $(CSM_LIB) $(DAM_LIB) -lUtilsDAM -lcosmomad -lgsl -lgslcblas -lm
+LIB_ALL = $(GSL_LIB) $(CSM_LIB) -lcosmomad -lgsl -lgslcblas -lm
 
 COMMONO = src/common.o
 IOO = src/io.o

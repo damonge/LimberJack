@@ -1,8 +1,60 @@
 #include "common.h"
 
+int my_linecount(FILE *f)
+{
+  int i0=0;
+  char ch[1000];
+  while((fgets(ch,sizeof(ch),f))!=NULL) {
+    i0++;
+  }
+  return i0;
+}
+
+void report_error(int level,char *fmt,...)
+{
+  va_list args;
+  char msg[256];
+
+  va_start(args,fmt);
+  vsprintf(msg,fmt,args);
+  va_end(args);
+  
+  if(level) {
+    fprintf(stderr," Fatal error: %s",msg);
+    exit(level);
+  }
+  else
+    fprintf(stderr," Warning: %s",msg);
+}
+
+void *my_malloc(size_t size)
+{
+  void *outptr=malloc(size);
+  if(outptr==NULL) report_error(1,"Out of memory\n");
+
+  return outptr;
+}
+
+void *my_calloc(size_t nmemb,size_t size)
+{
+  void *outptr=calloc(nmemb,size);
+  if(outptr==NULL) report_error(1,"Out of memory\n");
+
+  return outptr;
+}
+
+FILE *my_fopen(const char *path,const char *mode)
+{
+  FILE *fout=fopen(path,mode);
+  if(fout==NULL)
+    report_error(1,"Couldn't open file %s\n",path);
+
+  return fout;
+}
+
 SplPar *spline_init(int n,double *x,double *y,double y0,double yf)
 {
-  SplPar *spl=(SplPar *)dam_malloc(sizeof(SplPar));
+  SplPar *spl=(SplPar *)my_malloc(sizeof(SplPar));
   spl->intacc=gsl_interp_accel_alloc();
   spl->spline=gsl_spline_alloc(gsl_interp_cspline,n);
   gsl_spline_init(spl->spline,x,y,n);
@@ -33,7 +85,7 @@ void spline_free(SplPar *spl)
 
 RunParams *param_new(void)
 {
-  RunParams *par=(RunParams *)dam_malloc(sizeof(RunParams));
+  RunParams *par=(RunParams *)my_malloc(sizeof(RunParams));
   par->om=0.3;
   par->ol=0.7;
   par->ob=0.05;
@@ -41,9 +93,9 @@ RunParams *param_new(void)
   par->wa=0.;
   par->ns=0.96;
   par->s8=0.8;
-  par->fname_window=dam_malloc(2*sizeof(char *));
-  par->fname_window[0]=dam_malloc(256*sizeof(char));
-  par->fname_window[1]=dam_malloc(256*sizeof(char));
+  par->fname_window=my_malloc(2*sizeof(char *));
+  par->fname_window[0]=my_malloc(256*sizeof(char));
+  par->fname_window[1]=my_malloc(256*sizeof(char));
   sprintf(par->fname_window[0],"default");
   sprintf(par->fname_window[1],"default");
   sprintf(par->fname_bias,"default");

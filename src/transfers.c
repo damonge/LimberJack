@@ -108,7 +108,7 @@ double transfer_wrap(int l,double k,RunParams *par,char *trtype,int ibin)
 {
   if(!strcmp(trtype,"nc")) {
     if(par->do_nc!=1)
-      dam_report_error(1,"Asked to calculate NC transfer function, but can't!\n");
+      report_error(1,"Asked to calculate NC transfer function, but can't!\n");
     else {
       double tr=0;
       if(par->has_dens)
@@ -122,19 +122,19 @@ double transfer_wrap(int l,double k,RunParams *par,char *trtype,int ibin)
   }
   if(!strcmp(trtype,"isw")) {
     if(par->do_isw!=1)
-      dam_report_error(1,"Asked to calculate ISW transfer function, but can't!\n");
+      report_error(1,"Asked to calculate ISW transfer function, but can't!\n");
     else
       return transfer_isw(l,k,par);
   }
   if(!strcmp(trtype,"shear")) {
     if(par->do_shear!=1)
-      dam_report_error(1,"Asked to calculate shear transfer function, but can't!\n");
+      report_error(1,"Asked to calculate shear transfer function, but can't!\n");
     else
       return transfer_lensing(l,k,par,ibin);
   }
   if(!strcmp(trtype,"cmblens")) {
     if(par->do_cmblens!=1)
-      dam_report_error(1,"Asked to calculate shear transfer function, but can't!\n");
+      report_error(1,"Asked to calculate shear transfer function, but can't!\n");
     else
 #ifdef _NOLIM_CMBL
       return transfer_cmblens_nolim(l,k,par);
@@ -143,6 +143,6 @@ double transfer_wrap(int l,double k,RunParams *par,char *trtype,int ibin)
 #endif //_NOLIM_CMBL
   }
   else
-    dam_report_error(1,"Unknown transfer type %s\n",trtype);
+    report_error(1,"Unknown transfer type %s\n",trtype);
   return -1.;
 }

@@ -154,7 +154,7 @@ void compute_w_theta(RunParams *par)
 
     printf("Computing correlation functions\n");
 
-    llist=dam_malloc((par->lmax+1)*sizeof(double));
+    llist=my_malloc((par->lmax+1)*sizeof(double));
     for(l=0;l<=par->lmax;l++)
       llist[l]=(float)l;
 

@@ -140,7 +140,7 @@ static void print_bg(RunParams *par)
   FILE *fo;
   double zmax=fmax(par->wind_0[0]->xf,par->wind_0[1]->xf);
   sprintf(fname,"%s_bg.db",par->prefix_out);
-  fo=dam_fopen(fname,"w");
+  fo=my_fopen(fname,"w");
   fprintf(fo,"[0]z [1]chi [2]zb [3]a [4]h [5]gf [6]fg ");
   icol=6;
   if(par->do_nc) {
@@ -205,9 +205,9 @@ RunParams *init_params(char *fname_ini)
     dchi=par->chi_horizon/n;
     par->dchi=dchi;
     
-    x=(double *)dam_malloc(n*sizeof(double));
-    a=(double *)dam_malloc(n*sizeof(double));
-    y=(double *)dam_malloc(n*sizeof(double));
+    x=(double *)my_malloc(n*sizeof(double));
+    a=(double *)my_malloc(n*sizeof(double));
+    y=(double *)my_malloc(n*sizeof(double));
     
     for(ii=0;ii<n;ii++)
       x[ii]=dchi*ii;
@@ -247,76 +247,76 @@ RunParams *init_params(char *fname_ini)
 
   //Allocate power spectra
   if(par->do_nc) {
-    par->cl_dd=(double *)dam_malloc((par->lmax+1)*sizeof(double));
+    par->cl_dd=(double *)my_malloc((par->lmax+1)*sizeof(double));
     if(par->do_shear) {
-      par->cl_d1l2=(double *)dam_malloc((par->lmax+1)*sizeof(double));
-      par->cl_d2l1=(double *)dam_malloc((par->lmax+1)*sizeof(double));
+      par->cl_d1l2=(double *)my_malloc((par->lmax+1)*sizeof(double));
+      par->cl_d2l1=(double *)my_malloc((par->lmax+1)*sizeof(double));
     }
     if(par->do_cmblens)
-      par->cl_dc=(double *)dam_malloc((par->lmax+1)*sizeof(double));
+      par->cl_dc=(double *)my_malloc((par->lmax+1)*sizeof(double));
     if(par->do_isw)
-      par->cl_di=(double *)dam_malloc((par->lmax+1)*sizeof(double));
+      par->cl_di=(double *)my_malloc((par->lmax+1)*sizeof(double));
   }
   if(par->do_shear) {
-    par->cl_ll=(double *)dam_malloc((par->lmax+1)*sizeof(double));
+    par->cl_ll=(double *)my_malloc((par->lmax+1)*sizeof(double));
     if(par->do_cmblens)
-      par->cl_lc=(double *)dam_malloc((par->lmax+1)*sizeof(double));
+      par->cl_lc=(double *)my_malloc((par->lmax+1)*sizeof(double));
     if(par->do_isw)
-      par->cl_li=(double *)dam_malloc((par->lmax+1)*sizeof(double));
+      par->cl_li=(double *)my_malloc((par->lmax+1)*sizeof(double));
   }
   if(par->do_cmblens) {
-    par->cl_cc=(double *)dam_malloc((par->lmax+1)*sizeof(double));
+    par->cl_cc=(double *)my_malloc((par->lmax+1)*sizeof(double));
     if(par->do_isw)
-      par->cl_ci=(double *)dam_malloc((par->lmax+1)*sizeof(double));
+      par->cl_ci=(double *)my_malloc((par->lmax+1)*sizeof(double));
   }
   if(par->do_isw)
-    par->cl_ii=(double *)dam_malloc((par->lmax+1)*sizeof(double));
+    par->cl_ii=(double *)my_malloc((par->lmax+1)*sizeof(double));
 
   if(par->do_w_theta) {
     if(par->do_nc) {
-      par->wt_dd=(double *)dam_malloc(par->n_th*sizeof(double));
+      par->wt_dd=(double *)my_malloc(par->n_th*sizeof(double));
       if(par->do_shear) {
-	par->wt_d1l2=(double *)dam_malloc(par->n_th*sizeof(double));
-	par->wt_d2l1=(double *)dam_malloc(par->n_th*sizeof(double));
+	par->wt_d1l2=(double *)my_malloc(par->n_th*sizeof(double));
+	par->wt_d2l1=(double *)my_malloc(par->n_th*sizeof(double));
       }
       if(par->do_cmblens)
-	par->wt_dc=(double *)dam_malloc(par->n_th*sizeof(double));
+	par->wt_dc=(double *)my_malloc(par->n_th*sizeof(double));
       if(par->do_isw)
-	par->wt_di=(double *)dam_malloc(par->n_th*sizeof(double));
+	par->wt_di=(double *)my_malloc(par->n_th*sizeof(double));
     }
     if(par->do_shear) {
-      par->wt_ll_pp=(double *)dam_malloc(par->n_th*sizeof(double));
-      par->wt_ll_mm=(double *)dam_malloc(par->n_th*sizeof(double));
+      par->wt_ll_pp=(double *)my_malloc(par->n_th*sizeof(double));
+      par->wt_ll_mm=(double *)my_malloc(par->n_th*sizeof(double));
       if(par->do_cmblens)
-	par->wt_lc=(double *)dam_malloc(par->n_th*sizeof(double));
+	par->wt_lc=(double *)my_malloc(par->n_th*sizeof(double));
       if(par->do_isw)
-	par->wt_li=(double *)dam_malloc(par->n_th*sizeof(double));
+	par->wt_li=(double *)my_malloc(par->n_th*sizeof(double));
     }
     if(par->do_cmblens) {
-      par->wt_cc=(double *)dam_malloc(par->n_th*sizeof(double));
+      par->wt_cc=(double *)my_malloc(par->n_th*sizeof(double));
       if(par->do_isw)
-	par->wt_ci=(double *)dam_malloc(par->n_th*sizeof(double));
+	par->wt_ci=(double *)my_malloc(par->n_th*sizeof(double));
     }
     if(par->do_isw)
-      par->wt_ii=(double *)dam_malloc(par->n_th*sizeof(double));
+      par->wt_ii=(double *)my_malloc(par->n_th*sizeof(double));
   }
     
   if(par->do_nc || par->do_shear || par->do_cmblens || par->do_isw)
     csm_set_linear_pk(par->cpar,par->fname_pk,D_LKMIN,D_LKMAX,0.01,par->ns,par->s8);
   
   if(par->do_nc || par->do_shear) {
-    par->wind_0=dam_malloc(2*sizeof(SplPar *));
+    par->wind_0=my_malloc(2*sizeof(SplPar *));
     for(ibin=0;ibin<2;ibin++) {
       printf("Reading window function %s\n",par->fname_window[ibin]);
-      fi=dam_fopen(par->fname_window[ibin],"r");
-      n=dam_linecount(fi); rewind(fi);
+      fi=my_fopen(par->fname_window[ibin],"r");
+      n=my_linecount(fi); rewind(fi);
       //Read unnormalized window
-      x=(double *)dam_malloc(n*sizeof(double));
-      y=(double *)dam_malloc(n*sizeof(double));
+      x=(double *)my_malloc(n*sizeof(double));
+      y=(double *)my_malloc(n*sizeof(double));
       for(ii=0;ii<n;ii++) {
 	stat=fscanf(fi,"%lE %lE",&(x[ii]),&(y[ii]));
 	if(stat!=2)
-	  dam_report_error(1,"Error reading file, line %d\n",ii+1);
+	  report_error(1,"Error reading file, line %d\n",ii+1);
       }
       fclose(fi);
       par->wind_0[ibin]=spline_init(n,x,y,0.,0.);
@@ -339,15 +339,15 @@ RunParams *init_params(char *fname_ini)
   if(par->do_nc) {
     if(par->has_dens==1) {
       printf("Reading bias function %s\n",par->fname_bias);
-      fi=dam_fopen(par->fname_bias,"r");
-      n=dam_linecount(fi); rewind(fi);
+      fi=my_fopen(par->fname_bias,"r");
+      n=my_linecount(fi); rewind(fi);
       //Read bias
-      x=(double *)dam_malloc(n*sizeof(double));
-      y=(double *)dam_malloc(n*sizeof(double));
+      x=(double *)my_malloc(n*sizeof(double));
+      y=(double *)my_malloc(n*sizeof(double));
       for(ii=0;ii<n;ii++) {
 	stat=fscanf(fi,"%lE %lE",&(x[ii]),&(y[ii]));
 	if(stat!=2)
-	  dam_report_error(1,"Error reading file, line %d\n",ii+1);
+	  report_error(1,"Error reading file, line %d\n",ii+1);
       }
       fclose(fi);
       par->bias=spline_init(n,x,y,y[0],y[n-1]);
@@ -356,22 +356,22 @@ RunParams *init_params(char *fname_ini)
 
     if(par->has_lensing==1) {
       printf("Reading s-bias function %s\n",par->fname_sbias);
-      fi=dam_fopen(par->fname_sbias,"r");
-      n=dam_linecount(fi); rewind(fi);
+      fi=my_fopen(par->fname_sbias,"r");
+      n=my_linecount(fi); rewind(fi);
       //Read s-bias
-      x=(double *)dam_malloc(n*sizeof(double));
-      y=(double *)dam_malloc(n*sizeof(double));
+      x=(double *)my_malloc(n*sizeof(double));
+      y=(double *)my_malloc(n*sizeof(double));
       for(ii=0;ii<n;ii++) {
 	stat=fscanf(fi,"%lE %lE",&(x[ii]),&(y[ii]));
 	if(stat!=2)
-	  dam_report_error(1,"Error reading file, line %d\n",ii+1);
+	  report_error(1,"Error reading file, line %d\n",ii+1);
       }
       fclose(fi);
       par->sbias=spline_init(n,x,y,y[0],y[n-1]);
       free(x); free(y);
     
       printf("Computing lensing magnification window function\n");
-      par->wind_M=dam_malloc(2*sizeof(SplPar *));
+      par->wind_M=my_malloc(2*sizeof(SplPar *));
       for(ibin=0;ibin<2;ibin++) {
 	double dchi_here;
 	double zmax=par->wind_0[ibin]->xf;
@@ -379,8 +379,8 @@ RunParams *init_params(char *fname_ini)
 	n=(int)(chimax/par->dchi)+1;
 	dchi_here=chimax/n;
       
-	x=(double *)dam_malloc(n*sizeof(double));
-	y=(double *)dam_malloc(n*sizeof(double));
+	x=(double *)my_malloc(n*sizeof(double));
+	y=(double *)my_malloc(n*sizeof(double));
 
 #ifdef _HAVE_OMP
 #pragma omp parallel default(none) shared(n,x,y,par,dchi_here,ibin) 
@@ -406,7 +406,7 @@ RunParams *init_params(char *fname_ini)
 
   if(par->do_shear) {
     printf("Computing lensing window function\n");
-    par->wind_L=dam_malloc(2*sizeof(SplPar *));
+    par->wind_L=my_malloc(2*sizeof(SplPar *));
     for(ibin=0;ibin<2;ibin++) {
       double dchi_here;
       double zmax=par->wind_0[ibin]->xf;
@@ -414,8 +414,8 @@ RunParams *init_params(char *fname_ini)
       n=(int)(chimax/par->dchi)+1;
       dchi_here=chimax/n;
     
-      x=(double *)dam_malloc(n*sizeof(double));
-      y=(double *)dam_malloc(n*sizeof(double));
+      x=(double *)my_malloc(n*sizeof(double));
+      y=(double *)my_malloc(n*sizeof(double));
     
 #ifdef _HAVE_OMP
 #pragma omp parallel default(none) shared(n,x,y,par,dchi_here,ibin) 
