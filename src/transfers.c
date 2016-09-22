@@ -86,7 +86,8 @@ static double transfer_lensing(int l,double k,RunParams *par,int ibin)
   if(w<=0)
     return 0;
   else
-    return par->prefac_lensing*l*(l+1)*gf*w/(a*chi*k*k);
+    return par->prefac_lensing*sqrt((l+2.)*(l+1.)*l*(l-1.))*gf*w/(a*chi*k*k);
+  //    return par->prefac_lensing*l*(l+1)*gf*w/(a*chi*k*k);
 }
 
 static double transfer_cmblens(int l,double k,RunParams *par)
