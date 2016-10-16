@@ -197,7 +197,7 @@ RunParams *init_params(char *fname_ini)
     double hub;
     csm_background_set(par->cpar,par->om,par->ol,par->ob,par->w0,par->wa,par->h0,D_TCMB);
     par->chi_horizon=csm_radial_comoving_distance(par->cpar,0.);
-    par->chi_LSS=csm_radial_comoving_distance(par->cpar,1./(1+D_Z_REC));
+    par->chi_LSS=csm_radial_comoving_distance(par->cpar,1./(1+par->z_LSS));
     hub=csm_hubble(par->cpar,1.);
     par->prefac_lensing=1.5*hub*hub*par->om;
     

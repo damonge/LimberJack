@@ -106,8 +106,10 @@ RunParams *param_new(void)
   par->cpar=NULL;
   par->chi_horizon=-1.;
   par->chi_LSS=-1.;
+  par->z_LSS=-1.;
   par->prefac_lensing=-1.;
   par->dchi=-1.;
+  par->r_smooth=-1.;
   par->aofchi=NULL;
   par->zofchi=NULL;
   par->hofchi=NULL;
