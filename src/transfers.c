@@ -101,7 +101,7 @@ static double transfer_cmblens(int l,double k,RunParams *par)
     double a=spline_eval(chi,par->aofchi);
     double w=1-chi/par->chi_LSS;
 
-    return par->prefac_lensing*l*(l+1)*gf*w/(2*a*chi*k*k);
+    return par->prefac_lensing*l*(l+1)*gf*w/(a*chi*k*k);
   }
 }
 
