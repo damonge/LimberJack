@@ -332,6 +332,10 @@ RunParams *init_params(char *fname_ini)
       	y[ii]/=norm;
       spline_free(par->wind_0[ibin]);
       par->wind_0[ibin]=spline_init(n,x,y,0.,0.);
+
+      par->chimin_nc[ibin]=csm_radial_comoving_distance(par->cpar,1./(1+x[0]));
+      par->chimax_nc[ibin]=csm_radial_comoving_distance(par->cpar,1./(1+x[n-1]));
+
       free(x); free(y);
     }
   }

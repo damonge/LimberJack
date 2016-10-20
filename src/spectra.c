@@ -19,10 +19,40 @@ static double cl_integrand(double lk,void *params)
   return k*d1*d2*pk;
 }
 
+static void get_k_interval(RunParams *par,char *tr1,char *tr2,int l,double *lkmin,double *lkmax)
+{
+  double chimin,chimax;
+  if(!strcmp(tr1,"nc")) {
+    if(!strcmp(tr2,"nc")) {
+      chimin=fmax(par->chimin_nc[0],par->chimin_nc[1]);
+      chimax=fmin(par->chimax_nc[0],par->chimax_nc[1]);
+    }
+    else {
+      chimin=par->chimin_nc[0];
+      chimax=par->chimax_nc[0];
+    }
+  }
+  else if(!strcmp(tr2,"nc")) {
+    chimin=par->chimin_nc[1];
+    chimax=par->chimax_nc[1];
+  }
+  else {
+    chimin=0.5*(l+0.5)/pow(10.,D_LKMAX);
+    chimax=2*(l+0.5)/pow(10.,D_LKMIN);
+  }
+
+  if(chimin<=0)
+    chimin=0.5*(l+0.5)/pow(10.,D_LKMAX);
+
+  *lkmax=fmin(D_LKMAX,log10(2*(l+0.5)/chimin));
+  *lkmin=fmax(D_LKMIN,log10(0.5*(l+0.5)/chimax));
+}
+
 static double spectra(char *tr1,char *tr2,int l,RunParams *par)
 {
   IntClPar ipar;
   double result=0,eresult;
+  double lkmax,lkmin;
   gsl_function F;
   gsl_integration_workspace *w=gsl_integration_workspace_alloc(1000);
   ipar.l=l;
@@ -31,7 +61,8 @@ static double spectra(char *tr1,char *tr2,int l,RunParams *par)
   ipar.tr2=tr2;
   F.function=&cl_integrand;
   F.params=&ipar;
-  gsl_integration_qag(&F,D_LKMIN,D_LKMAX,0,1E-4,1000,GSL_INTEG_GAUSS41,w,&result,&eresult);
+  get_k_interval(par,tr1,tr2,l,&lkmin,&lkmax);
+  gsl_integration_qag(&F,lkmin,lkmax,0,1E-4,1000,GSL_INTEG_GAUSS41,w,&result,&eresult);
   gsl_integration_workspace_free(w);
 
   return M_LN10*2*result/(2*l+1.);

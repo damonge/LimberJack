@@ -31,6 +31,8 @@ typedef struct {
   Csm_params *cpar;
   double chi_horizon;
   double chi_LSS;
+  double chimax_nc[2];
+  double chimin_nc[2];
   double prefac_lensing;
   double dchi;
   int do_nc;

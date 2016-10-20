@@ -6,7 +6,7 @@
 
 #define DTOR 0.01745329251
 
-#define D_LKMIN -20.
-#define D_LKMAX 30.
+#define D_LKMIN -5.
+#define D_LKMAX 2.
 
 #endif //_PARAMS_
