@@ -36,27 +36,22 @@ void compute_lognorm_bias(RunParams* par) {
     double curz=za[i];
     double gf=csm_growth_factor(par->cpar,curz)/g0;
     double bias=spline_eval(curz,par->bias);
+    // get smoothed power spectrum
     for (int j=0; j<NK_LGN; j++) 
       Pk[j]=csm_Pk_linear_0(par->cpar,ka[j])*gf*gf*exp(-ka[j]*ka[j]*rsm2);
+    // transform to xi and lognormalize
     pk2xi(NK_LGN, ka, Pk, ra, xi);
     for (int j=0; j<NK_LGN; j++) 
       xi[j]=exp(xi[j]*bias*bias)-1.0;
+    // back to pk
     xi2pk(NK_LGN, ra,xi,ka,Pkt);
-    // now we have the effective extra bias
+    // now we have the effective extra bias, store to spline 
     for (int j=0; j<NK_LGN; j++) {
       double val=Pkt[j]/Pk[j]/bias/bias;
       if ((val>1000) || (val<0) || isnan(val)) val=1.0;
       ba[j*NZ_LGN+i]=sqrt(val);
     }
   }
-
-  /*  for (int i=0;i<NZ_LGN; i++)
-    printf ("%g ",za[i]);
-  printf ("aaa\n");
-  for (int i=0;i<NK_LGN; i++) 
-    printf ("%g ",lka[i]);
-   printf ("aaa\n");
-  for (int i=0; i<NZ_LGN*NK_LGN; i++)
-  if (ba[i]==0) printf ("^^^^^^^^^^^^^^^^^^^^^ %i",i); */
-   par->lognorm_bias=spline2D_init(NZ_LGN, NK_LGN, za, lka, ba, 0., 100.);
+  //initialize 2D spline.
+  par->lognorm_bias=spline2D_init(NZ_LGN, NK_LGN, za, lka, ba, 0., 100.);
 }
