@@ -29,8 +29,11 @@ static double transfer_dens(int l,double k,RunParams *par,int ibin)
   double z=spline_eval(chi,par->zofchi);
   double pz=spline_eval(z,par->wind_0[ibin]);
   double bz=spline_eval(z,par->bias);
-
-  return pz*bz*gf*h;
+  double lnb=1.0;
+  if (par->has_lognorm)
+    if (spline2D_inspline(z,log(k), par->lognorm_bias))
+      lnb=spline2D_eval(z,log(k),par->lognorm_bias);
+  return pz*bz*gf*h*lnb;
 }
 
 static double transfer_rsd(int l,double k,RunParams *par,int ibin)

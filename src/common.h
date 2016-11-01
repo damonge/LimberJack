@@ -7,6 +7,8 @@
 #include <string.h>
 #include <math.h>
 #include <gsl/gsl_spline.h>
+#include <gsl/gsl_interp2d.h>
+#include <gsl/gsl_spline2d.h>
 #include <gsl/gsl_roots.h>
 #include "params.h"
 #include "cosmo_mad.h"
@@ -17,6 +19,13 @@ typedef struct {
   double x0,xf;
   double y0,yf;
 } SplPar;
+
+typedef struct {
+  gsl_interp_accel *xacc,*yacc;
+  gsl_spline2d *spline;
+  double x0,xf,y0,yf;
+  double z0,zf;
+} SplPar2D;
 
 typedef struct {
   double om,ol,ob;
@@ -43,6 +52,7 @@ typedef struct {
   int has_dens;
   int has_rsd;
   int has_lensing;
+  int has_lognorm;
   SplPar *aofchi;
   SplPar *zofchi;
   SplPar *hofchi;
@@ -53,6 +63,7 @@ typedef struct {
   SplPar **wind_L;
   SplPar *bias;
   SplPar *sbias;
+  SplPar2D *lognorm_bias;
   double *cl_dd;
   double *cl_d1l2;
   double *cl_d2l1;
@@ -93,6 +104,10 @@ FILE *my_fopen(const char *path,const char *mode);
 SplPar *spline_init(int n,double *x,double *y,double y0,double yf);
 double spline_eval(double x,SplPar *spl);
 void spline_free(SplPar *spl);
+SplPar2D *spline2D_init(int nx, int ny,double *x,double *y, double *z,double z0,double zf);
+int spline2D_inspline(double x, double y,  SplPar2D *spl);
+double spline2D_eval(double x, double y,  SplPar2D *spl);
+void spline2d_free(SplPar2D *spl);
 RunParams *param_new(void);
 void param_free(RunParams *par);
 
@@ -105,6 +120,9 @@ double transfer_wrap(int l,double k,RunParams *par,char *trtype,int ibin);
 //Defined in spectra.c
 void compute_spectra(RunParams *par);
 void compute_w_theta(RunParams *par);
+
+//Defined in lognorm.c
+void compute_lognorm_bias(RunParams *par);
 
 //Defined in io.c
 int read_parameter_file(char *fname,RunParams *par);

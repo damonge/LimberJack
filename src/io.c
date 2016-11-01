@@ -158,6 +158,8 @@ int read_parameter_file(char *fname,RunParams *par)
       par->has_rsd=atoi(s2);
     else if(!strcmp(s1,"has_nc_lensing="))
       par->has_lensing=atoi(s2);
+    else if(!strcmp(s1,"has_nc_lognorm="))
+      par->has_lognorm=atoi(s2);
     else if(!strcmp(s1,"do_shear="))
       par->do_shear=atoi(s2);
     else if(!strcmp(s1,"do_cmblens="))
