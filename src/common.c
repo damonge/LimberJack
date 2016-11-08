@@ -100,6 +100,7 @@ RunParams *param_new(void)
   sprintf(par->fname_window[1],"default");
   sprintf(par->fname_bias,"default");
   sprintf(par->fname_sbias,"default");
+  sprintf(par->fname_abias,"default");
   sprintf(par->fname_pk,"default");
   sprintf(par->prefix_out,"default");
   par->lmax=100;
@@ -122,6 +123,7 @@ RunParams *param_new(void)
   par->wind_L=NULL;
   par->bias=NULL;
   par->sbias=NULL;
+  par->abias=NULL;
   par->do_nc=0;
   par->do_shear=0;
   par->do_cmblens=0;
@@ -130,6 +132,7 @@ RunParams *param_new(void)
   par->has_dens=0;
   par->has_rsd=0;
   par->has_lensing=0;
+  par->has_intrinsic_alignment=0;
   par->cl_dd=NULL;
   par->cl_d1l2=NULL;
   par->cl_d2l1=NULL;
@@ -212,6 +215,9 @@ void param_free(RunParams *par)
     spline_free(par->wind_L[1]);
     free(par->wind_L);
     free(par->cl_ll);
+    if(par->has_intrinsic_alignment) {
+      spline_free(par->abias);
+    }
     if(par->do_w_theta) {
       free(par->wt_ll_pp);
       free(par->wt_ll_mm);

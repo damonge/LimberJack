@@ -90,6 +90,18 @@ static double transfer_lensing(int l,double k,RunParams *par,int ibin)
   //    return par->prefac_lensing*l*(l+1)*gf*w/(a*chi*k*k);
 }
 
+static double transfer_IA_NLA(int l,double k,RunParams *par,int ibin)
+{
+  double chi=(l+0.5)/k;
+  double gf=spline_eval(chi,par->gfofchi);
+  double h=spline_eval(chi,par->hofchi);
+  double z=spline_eval(chi,par->zofchi);
+  double pz=spline_eval(z,par->wind_0[ibin]);
+  double az=spline_eval(z,par->abias);
+
+  return pz*az*gf*h*sqrt((l+2.)*(l+1.)*l*(l-1.))/((l+0.5)*(l+0.5));
+}
+
 static double transfer_cmblens(int l,double k,RunParams *par)
 {
   double chi=(l+0.5)/k;
@@ -121,19 +133,23 @@ double transfer_wrap(int l,double k,RunParams *par,char *trtype,int ibin)
       return tr;
     }
   }
-  if(!strcmp(trtype,"isw")) {
+  else if(!strcmp(trtype,"isw")) {
     if(par->do_isw!=1)
       report_error(1,"Asked to calculate ISW transfer function, but can't!\n");
     else
       return transfer_isw(l,k,par);
   }
-  if(!strcmp(trtype,"shear")) {
+  else if(!strcmp(trtype,"shear")) {
     if(par->do_shear!=1)
       report_error(1,"Asked to calculate shear transfer function, but can't!\n");
-    else
-      return transfer_lensing(l,k,par,ibin);
+    else {
+      double tr=transfer_lensing(l,k,par,ibin);
+      if(par->has_intrinsic_alignment)
+	tr+=transfer_IA_NLA(l,k,par,ibin);
+      return tr;
+    }
   }
-  if(!strcmp(trtype,"cmblens")) {
+  else if(!strcmp(trtype,"cmblens")) {
     if(par->do_cmblens!=1)
       report_error(1,"Asked to calculate shear transfer function, but can't!\n");
     else
@@ -143,7 +159,10 @@ double transfer_wrap(int l,double k,RunParams *par,char *trtype,int ibin)
       return transfer_cmblens(l,k,par);
 #endif //_NOLIM_CMBL
   }
-  else
+  else {
     report_error(1,"Unknown transfer type %s\n",trtype);
+    return -1.;
+  }
+
   return -1.;
 }

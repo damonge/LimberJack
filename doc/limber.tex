@@ -22,6 +22,8 @@ The expressions for density, RSD, magnification, lensing convergence and CMB len
   &\Delta_\ell^{RSD}(k)=\int dz \frac{(1+z) p_z(z)}{H(z)}T_\theta(k,z) j_\ell''(k\chi(z))\\
   &\Delta_\ell^M(k)=-\ell(\ell+1)\int \frac{dz}{H(z)} W^M(z) T_{\phi+\psi}(k,z) j_\ell(k\chi(z)), \\ 
   &\Delta_\ell^L(k)=-\frac{\ell(\ell+1)}{2}\int \frac{dz}{H(z)} W^L(z) T_{\phi+\psi}(k,z) j_\ell(k\chi(z)),  \\
+  &\Delta_\ell^{IA}(k)=-\sqrt{\frac{(\ell+2)!}{(\ell-2)!}}
+                       \int dz\,p_z(z)\,b_{\rm IA}(z)\,T_\delta(k,z)\,\frac{j_\ell(k\chi(z))}{(k\chi(z))^2},  \\
   &\Delta_\ell^C(k)=\frac{\ell(\ell+1)}{2}\int_0^{\chi_*}d\chi
   \frac{\chi_*-\chi}{\chi\chi_*} T_{\phi+\psi}(k,z) j_\ell(k\chi),  
 \end{align}
@@ -61,6 +63,7 @@ where
  &\tilde{\Delta}_\ell^L(k)=\frac{3}{2}\Omega_{M,0}H_0^2\sqrt{\frac{(\ell+2)!}{(\ell-2)}}\frac{1}{k^2}\,
  \frac{D(\chi_\ell)}{a(\chi_\ell)\chi_\ell}W^M(\chi_\ell)\longrightarrow
  \frac{3}{2}\Omega_{M,0}H_0^2\,\frac{\chi_\ell D(\chi_\ell)}{a(\chi_\ell)}W^M(\chi_\ell)\\
+ &\tilde{\Delta}_\ell^{IA}(k)=p_z(\chi_\ell)\,b_I(\chi_\ell)\,D(\chi_\ell)\,H(\chi_\ell)\frac{\sqrt{(\ell+2)(\ell+1)\ell(\ell-1)}}{(\ell+1/2)^2}\\
  &\tilde{\Delta}_\ell^C(k)=\frac{3}{2}\Omega_{M,0}H_0^2\frac{\ell(\ell+1)}{k^2}\,
  \frac{D(\chi_\ell)}{a(\chi_\ell)\chi_\ell}\frac{\chi_*-\chi_\ell}{\chi_*}\Theta(\chi_\ell-\chi_*)\longrightarrow
  \frac{3}{2}\Omega_{M,0}H_0^2\,\frac{\chi_\ell D(\chi_\ell)}{a(\chi_\ell)}\frac{\chi_*-\chi_\ell}{\chi_*}\Theta(\chi_\ell-\chi_*)

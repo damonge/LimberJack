@@ -25,6 +25,7 @@ typedef struct {
   char **fname_window;
   char fname_bias[256];
   char fname_sbias[256];
+  char fname_abias[256];
   char fname_pk[256];
   char prefix_out[256];
   int lmax;
@@ -43,6 +44,7 @@ typedef struct {
   int has_dens;
   int has_rsd;
   int has_lensing;
+  int has_intrinsic_alignment;
   SplPar *aofchi;
   SplPar *zofchi;
   SplPar *hofchi;
@@ -53,6 +55,7 @@ typedef struct {
   SplPar **wind_L;
   SplPar *bias;
   SplPar *sbias;
+  SplPar *abias;
   double *cl_dd;
   double *cl_d1l2;
   double *cl_d2l1;

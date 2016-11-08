@@ -409,6 +409,23 @@ RunParams *init_params(char *fname_ini)
   }
 
   if(par->do_shear) {
+    if(par->has_intrinsic_alignment==1) {
+      printf("Reading IA bias function %s\n",par->fname_abias);
+      fi=my_fopen(par->fname_abias,"r");
+      n=my_linecount(fi); rewind(fi);
+    //Read bias
+      x=(double *)my_malloc(n*sizeof(double));
+      y=(double *)my_malloc(n*sizeof(double));
+      for(ii=0;ii<n;ii++) {
+	stat=fscanf(fi,"%lE %lE",&(x[ii]),&(y[ii]));
+	if(stat!=2)
+	  report_error(1,"Error reading file, line %d\n",ii+1);
+      }
+      fclose(fi);
+      par->abias=spline_init(n,x,y,y[0],y[n-1]);
+      free(x); free(y);
+    }
+
     printf("Computing lensing window function\n");
     par->wind_L=my_malloc(2*sizeof(SplPar *));
     for(ibin=0;ibin<2;ibin++) {
