@@ -56,11 +56,16 @@ static double transfer_rsd(int l,double k,RunParams *par,int ibin)
 static double transfer_isw(int l,double k,RunParams *par)
 {
   double chi=(l+0.5)/k;
-  double gf=spline_eval(chi,par->gfofchi);
-  double h=spline_eval(chi,par->hofchi);
-  double fg=spline_eval(chi,par->fgofchi);
 
-  return 2*par->prefac_lensing*h*gf*(1-fg)/(k*k);
+  if(chi>=par->chi_LSS)
+    return 0;
+  else {
+    double gf=spline_eval(chi,par->gfofchi);
+    double h=spline_eval(chi,par->hofchi);
+    double fg=spline_eval(chi,par->fgofchi);
+
+    return 2*par->prefac_lensing*h*gf*(1-fg)/(k*k);
+  }
 }
 
 static double transfer_magnification(int l,double k,RunParams *par,int ibin)

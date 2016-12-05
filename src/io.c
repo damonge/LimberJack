@@ -144,6 +144,10 @@ int read_parameter_file(char *fname,RunParams *par)
       par->s8=atof(s2);
     else if(!strcmp(s1,"d_chi="))
       par->dchi=atof(s2);
+    else if(!strcmp(s1,"z_LSS="))
+      par->z_LSS=atof(s2);
+    else if(!strcmp(s1,"r_smooth="))
+      par->r_smooth=atof(s2);
     else if(!strcmp(s1,"l_max="))
       par->lmax=atoi(s2);
     else if(!strcmp(s1,"do_nc="))
@@ -192,6 +196,9 @@ int read_parameter_file(char *fname,RunParams *par)
       report_error(0,"Unknown parameter %s\n",s1);
   }
   fclose(fi);
+
+  if(par->z_LSS<0)
+    par->z_LSS=D_Z_REC;
 
   if(par->do_w_theta==0)
     par->do_w_theta_logbin=0;

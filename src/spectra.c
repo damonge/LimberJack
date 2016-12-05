@@ -13,6 +13,8 @@ static double cl_integrand(double lk,void *params)
   IntClPar *p=(IntClPar *)params;
   double k=pow(10.,lk);
   double pk=csm_Pk_linear_0(p->par->cpar,k);
+  if(p->par->r_smooth>0)
+    pk*=exp(-k*k*p->par->r_smooth*p->par->r_smooth);
   d1=transfer_wrap(p->l,k,p->par,p->tr1,0);
   d2=transfer_wrap(p->l,k,p->par,p->tr2,1);
 
