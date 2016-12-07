@@ -31,8 +31,10 @@ typedef struct {
   int lmax;
   Csm_params *cpar;
   double chi_horizon;
-  double z_LSS;
-  double chi_LSS;
+  double z_kappa;
+  double z_isw;
+  double chi_kappa;
+  double chi_isw;
   double chimax_nc[2];
   double chimin_nc[2];
   double prefac_lensing;

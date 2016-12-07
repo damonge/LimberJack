@@ -6,10 +6,10 @@ static double transfer_cmblens_nolim(int l,double k,RunParams *par)
 {
   int i;
   double ret=0;
-  double dchi=par->chi_LSS/N_CHI;
+  double dchi=par->chi_kappa/N_CHI;
   for(i=0;i<N_CHI;i++) {
     double chi=(i+0.5)*dchi;
-    double w=1-chi/par->chi_LSS;
+    double w=1-chi/par->chi_kappa;
     double a=spline_eval(chi,par->aofchi);
     double gf=spline_eval(chi,par->gfofchi);
     double jl=csm_j_bessel(l,k*chi);
@@ -57,7 +57,7 @@ static double transfer_isw(int l,double k,RunParams *par)
 {
   double chi=(l+0.5)/k;
 
-  if(chi>=par->chi_LSS)
+  if(chi>=par->chi_kappa)
     return 0;
   else {
     double gf=spline_eval(chi,par->gfofchi);
@@ -111,12 +111,12 @@ static double transfer_cmblens(int l,double k,RunParams *par)
 {
   double chi=(l+0.5)/k;
 
-  if(chi>=par->chi_LSS)
+  if(chi>=par->chi_kappa)
     return 0;
   else {
     double gf=spline_eval(chi,par->gfofchi);
     double a=spline_eval(chi,par->aofchi);
-    double w=1-chi/par->chi_LSS;
+    double w=1-chi/par->chi_kappa;
 
     return par->prefac_lensing*l*(l+1)*gf*w/(a*chi*k*k);
   }

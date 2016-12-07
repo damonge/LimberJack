@@ -106,12 +106,14 @@ RunParams *param_new(void)
   par->lmax=100;
   par->cpar=NULL;
   par->chi_horizon=-1.;
-  par->chi_LSS=-1.;
+  par->chi_kappa=-1.;
+  par->chi_isw=-1.;
   par->chimax_nc[0]=-1;
   par->chimax_nc[1]=-1;
   par->chimin_nc[0]=-1;
   par->chimin_nc[1]=-1;
-  par->z_LSS=-1.;
+  par->z_kappa=-1.;
+  par->z_isw=-1.;
   par->prefac_lensing=-1.;
   par->dchi=-1.;
   par->r_smooth=-1.;
