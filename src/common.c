@@ -104,6 +104,7 @@ RunParams *param_new(void)
   sprintf(par->fname_pk,"default");
   sprintf(par->prefix_out,"default");
   par->lmax=100;
+  par->l_limber_min=1000;
   par->cpar=NULL;
   par->chi_horizon=-1.;
   par->chi_kappa=-1.;

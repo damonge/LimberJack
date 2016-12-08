@@ -18,7 +18,7 @@ static double cl_integrand(double lk,void *params)
   d1=transfer_wrap(p->l,k,p->par,p->tr1,0);
   d2=transfer_wrap(p->l,k,p->par,p->tr2,1);
 
-  return k*d1*d2*pk;
+  return k*k*k*d1*d2*pk;
 }
 
 static void get_k_interval(RunParams *par,char *tr1,char *tr2,int l,double *lkmin,double *lkmax)
@@ -67,7 +67,7 @@ static double spectra(char *tr1,char *tr2,int l,RunParams *par)
   gsl_integration_qag(&F,lkmin,lkmax,0,1E-4,1000,GSL_INTEG_GAUSS41,w,&result,&eresult);
   gsl_integration_workspace_free(w);
 
-  return M_LN10*2*result/(2*l+1.);
+  return result*M_LN10*2./M_PI;
 }
 
 void compute_spectra(RunParams *par)
@@ -79,7 +79,7 @@ void compute_spectra(RunParams *par)
 #endif //_HAS_OMP
     int l;
 #ifdef _HAS_OMP
-#pragma omp for
+#pragma omp for schedule(dynamic)
 #endif //_HAS_OMP
     for(l=0;l<=par->lmax;l++) {
 #ifdef _DEBUG

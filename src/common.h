@@ -40,6 +40,7 @@ typedef struct {
   double prefac_lensing;
   double dchi;
   double r_smooth;
+  int l_limber_min;
   int do_nc;
   int do_shear;
   int do_cmblens;

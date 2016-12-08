@@ -334,8 +334,27 @@ RunParams *init_params(char *fname_ini)
       spline_free(par->wind_0[ibin]);
       par->wind_0[ibin]=spline_init(n,x,y,0.,0.);
 
-      par->chimin_nc[ibin]=csm_radial_comoving_distance(par->cpar,1./(1+x[0]));
-      par->chimax_nc[ibin]=csm_radial_comoving_distance(par->cpar,1./(1+x[n-1]));
+      double zmin,zmax;
+      double ymax=-1000;
+      for(ii=0;ii<n;ii++) {
+	if(y[ii]>ymax)
+	  ymax=y[ii];
+      }
+      ii=0;
+      while(y[ii]<1E-3*ymax)
+	ii++;
+      zmin=x[ii];
+      ii=n-1;
+      while(y[ii]<1E-3*ymax)
+	ii--;
+      zmax=x[ii];
+
+      par->chimin_nc[ibin]=csm_radial_comoving_distance(par->cpar,1./(1+zmin));
+      par->chimax_nc[ibin]=csm_radial_comoving_distance(par->cpar,1./(1+zmax));
+#ifdef _DEBUG
+      printf("%d %lE %lE %lE %lE\n",
+	     ibin,zmin,zmax,par->chimin_nc[ibin],par->chimax_nc[ibin]);
+#endif //_DEBUG
 
       free(x); free(y);
     }

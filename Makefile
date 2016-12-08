@@ -3,8 +3,8 @@
 ###Compiler and compilation options
 COMP = gcc
 OPTIONS = -Wall -O3
-#OPTIONS += -D_HAS_OMP -fopenmp
-#OPTIONS += -D_DEBUG
+OPTIONS += -D_HAS_OMP -fopenmp
+OPTIONS += -D_DEBUG
 #
 ###Path to libraries and headers
 ###If two or more of the dependencies reside in the same paths, only

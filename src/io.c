@@ -142,6 +142,8 @@ int read_parameter_file(char *fname,RunParams *par)
       par->ns=atof(s2);
     else if(!strcmp(s1,"s8="))
       par->s8=atof(s2);
+    else if(!strcmp(s1,"l_limber_min="))
+      par->l_limber_min=atoi(s2);
     else if(!strcmp(s1,"d_chi="))
       par->dchi=atof(s2);
     else if(!strcmp(s1,"z_kappa="))
