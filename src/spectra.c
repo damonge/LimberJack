@@ -9,38 +9,72 @@ typedef struct {
 
 static double cl_integrand(double lk,void *params)
 {
-  double d1,d2;
+  double d1d2=0,dd1=0,dd2=0,dr1=0,dr2=0;
   IntClPar *p=(IntClPar *)params;
   double k=pow(10.,lk);
   double pk=csm_Pk_linear_0(p->par->cpar,k);
   if(p->par->r_smooth>0)
     pk*=exp(-k*k*p->par->r_smooth*p->par->r_smooth);
-  d1=transfer_wrap(p->l,k,p->par,p->tr1,0);
-  d2=transfer_wrap(p->l,k,p->par,p->tr2,1);
 
-  return k*k*k*d1*d2*pk;
+  if(!strcmp(p->tr1,"nc")) {
+    dd1=transfer_wrap(p->l,k,p->par,"nc_dens",0);
+    dr1=transfer_wrap(p->l,k,p->par,"nc_rest",0);
+  }
+  if(!strcmp(p->tr2,"nc")) {
+    dd2=transfer_wrap(p->l,k,p->par,"nc_dens",1);
+    dr2=transfer_wrap(p->l,k,p->par,"nc_rest",1);
+  }
+
+  if(!strcmp(p->tr1,"nc")) {
+    if(!strcmp(p->tr2,"nc")) {
+      double chi=(p->l+0.5)/k;
+      double z=spline_eval(chi,p->par->zofchi);
+      double lnb=1.;
+      double lk=log(k);
+      if(p->par->has_lognorm)
+	if(spline2D_inspline(z,lk,p->par->lognorm_bias))
+	  lnb=spline2D_eval(z,lk,p->par->lognorm_bias);
+      d1d2=dd1*dd2*lnb+dd1*dr2+dd2*dr1+dr1*dr2;
+    }
+    else
+      d1d2=(dd1+dr1)*transfer_wrap(p->l,k,p->par,p->tr2,1);
+  }
+  else {
+    if(!strcmp(p->tr2,"nc"))
+      d1d2=(dd2+dr2)*transfer_wrap(p->l,k,p->par,p->tr1,0);
+    else
+      d1d2=transfer_wrap(p->l,k,p->par,p->tr1,0)*transfer_wrap(p->l,k,p->par,p->tr2,1);
+  }
+
+  return k*k*k*d1d2*pk;
 }
 
 static void get_k_interval(RunParams *par,char *tr1,char *tr2,int l,double *lkmin,double *lkmax)
 {
   double chimin,chimax;
-  if(!strcmp(tr1,"nc")) {
-    if(!strcmp(tr2,"nc")) {
-      chimin=fmax(par->chimin_nc[0],par->chimin_nc[1]);
-      chimax=fmin(par->chimax_nc[0],par->chimax_nc[1]);
-    }
-    else {
-      chimin=par->chimin_nc[0];
-      chimax=par->chimax_nc[0];
-    }
-  }
-  else if(!strcmp(tr2,"nc")) {
-    chimin=par->chimin_nc[1];
-    chimax=par->chimax_nc[1];
+  if(l<par->l_limber_min) {
+    chimin=0.5*(l+0.5)/pow(10.,0.);//D_LKMAX);
+    chimax=2*(l+0.5)/pow(10.,-5.);//D_LKMIN);
   }
   else {
-    chimin=0.5*(l+0.5)/pow(10.,D_LKMAX);
-    chimax=2*(l+0.5)/pow(10.,D_LKMIN);
+    if(!strcmp(tr1,"nc")) {
+      if(!strcmp(tr2,"nc")) {
+	chimin=fmax(par->chimin_nc[0],par->chimin_nc[1]);
+	chimax=fmin(par->chimax_nc[0],par->chimax_nc[1]);
+      }
+      else {
+	chimin=par->chimin_nc[0];
+	chimax=par->chimax_nc[0];
+      }
+    }
+    else if(!strcmp(tr2,"nc")) {
+      chimin=par->chimin_nc[1];
+      chimax=par->chimax_nc[1];
+    }
+    else {
+      chimin=0.5*(l+0.5)/pow(10.,D_LKMAX);
+      chimax=2*(l+0.5)/pow(10.,D_LKMIN);
+    }
   }
 
   if(chimin<=0)
@@ -50,13 +84,14 @@ static void get_k_interval(RunParams *par,char *tr1,char *tr2,int l,double *lkmi
   *lkmin=fmax(D_LKMIN,log10(0.5*(l+0.5)/chimax));
 }
 
+#define NITER 5000
 static double spectra(char *tr1,char *tr2,int l,RunParams *par)
 {
   IntClPar ipar;
   double result=0,eresult;
   double lkmax,lkmin;
   gsl_function F;
-  gsl_integration_workspace *w=gsl_integration_workspace_alloc(1000);
+  gsl_integration_workspace *w=gsl_integration_workspace_alloc(NITER);
   ipar.l=l;
   ipar.par=par;
   ipar.tr1=tr1;
@@ -64,7 +99,7 @@ static double spectra(char *tr1,char *tr2,int l,RunParams *par)
   F.function=&cl_integrand;
   F.params=&ipar;
   get_k_interval(par,tr1,tr2,l,&lkmin,&lkmax);
-  gsl_integration_qag(&F,lkmin,lkmax,0,1E-4,1000,GSL_INTEG_GAUSS41,w,&result,&eresult);
+  gsl_integration_qag(&F,lkmin,lkmax,0,1E-4,NITER,GSL_INTEG_GAUSS41,w,&result,&eresult);
   gsl_integration_workspace_free(w);
 
   return result*M_LN10*2./M_PI;

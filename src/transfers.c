@@ -18,7 +18,13 @@ static double transfer_dens_nolim(int l,double k,RunParams *par,int ibin)
     double pz=spline_eval(z,par->wind_0[ibin]);
     double bz=spline_eval(z,par->bias);
     double jl=csm_j_bessel(l,k*chi);
+    //    double lnb=1;
 
+    //    if(par->has_lognorm)
+    //      if (spline2D_inspline(z,log(k), par->lognorm_bias))
+    //	lnb=spline2D_eval(z,log(k),par->lognorm_bias);
+    
+    //    ret+=h*pz*bz*gf*jl*lnb;
     ret+=h*pz*bz*gf*jl;
   }
 
@@ -154,7 +160,13 @@ static double transfer_dens(int l,double k,RunParams *par,int ibin)
   double z=spline_eval(chi,par->zofchi);
   double pz=spline_eval(z,par->wind_0[ibin]);
   double bz=spline_eval(z,par->bias);
+  //  double lnb=1;
+  
+  //  if(par->has_lognorm)
+  //    if (spline2D_inspline(z,log(k), par->lognorm_bias))
+  //      lnb=spline2D_eval(z,log(k),par->lognorm_bias);
 
+  //  return pz*bz*gf*h*lnb;
   return pz*bz*gf*h;
 }
 
@@ -250,7 +262,7 @@ static double transfer_isw(int l,double k,RunParams *par)
 double transfer_wrap(int l,double k,RunParams *par,char *trtype,int ibin)
 {
   double tr=-1;
-  if(!strcmp(trtype,"nc")) {
+  if(!strcmp(trtype,"nc_dens")) {
     if(par->do_nc!=1)
       report_error(1,"Asked to calculate NC transfer function, but can't!\n");
     else {
@@ -261,6 +273,13 @@ double transfer_wrap(int l,double k,RunParams *par,char *trtype,int ibin)
 	else
 	  tr+=transfer_dens(l,k,par,ibin);
       }
+    }
+  }
+  else if(!strcmp(trtype,"nc_rest")) {
+    if(par->do_nc!=1)
+      report_error(1,"Asked to calculate NC transfer function, but can't!\n");
+    else {
+      tr=0;
       if(par->has_rsd) {
 	if(l<=par->l_limber_min)
 	  tr+=transfer_rsd_nolim(l,k,par,ibin);

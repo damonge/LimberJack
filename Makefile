@@ -2,16 +2,19 @@
 #
 ###Compiler and compilation options
 COMP = gcc
-OPTIONS = -Wall -O3
+OPTIONS = -Wall -O3 -std=c99 -g
 OPTIONS += -D_HAS_OMP -fopenmp
-OPTIONS += -D_DEBUG
+#OPTIONS += -D_DEBUG
 #
 ###Path to libraries and headers
 ###If two or more of the dependencies reside in the same paths, only
 ###one instance is necessary.
 #GSL
-GSL_INC = -I/home/damonge/include
-GSL_LIB = -L/home/damonge/lib
+GSL_INC = -I/users/damonge/include
+GSL_LIB = -L/users/damonge/lib
+#FFTW
+FFTW_INC =
+FFTW_LIB =
 #COSMOMAD
 CSM_INC =
 CSM_LIB =
@@ -20,16 +23,18 @@ CSM_LIB =
 
 OPTIONS += $(DEFINEFLAGS)
 
-INC_ALL = -I./src $(GSL_INC) $(CSM_INC) $(DAM_INC)
-LIB_ALL = $(GSL_LIB) $(CSM_LIB) -lcosmomad -lgsl -lgslcblas -lm
+INC_ALL = -I./src $(GSL_INC) $(CSM_INC) $(FFTW_INC)
+LIB_ALL = $(GSL_LIB) $(CSM_LIB) $(FFTW_LIB) -lcosmomad -lgsl -lgslcblas -lfftw3 -lm
 
 COMMONO = src/common.o
 IOO = src/io.o
 COSMOO = src/cosmo.o
 TRANSFERO = src/transfers.o
 SPECTRAO = src/spectra.o
+LOGNORMO = src/lognorm.o
+FFTLOGO = src/fftlog.o
 MAIN = src/limberjack.c
-OFILES = $(COMMONO) $(IOO) $(COSMOO) $(TRANSFERO) $(SPECTRAO)
+OFILES = $(COMMONO) $(IOO) $(COSMOO) $(TRANSFERO) $(SPECTRAO) $(LOGNORMO) $(FFTLOGO)
 
 EXE = LimberJack
 

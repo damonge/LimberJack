@@ -83,6 +83,45 @@ void spline_free(SplPar *spl)
   free(spl);
 }
 
+SplPar2D *spline2D_init(int nx, int ny,double *x,double *y, double *z,double z0,double zf)
+{
+  SplPar2D *spl=(SplPar2D *)my_malloc(sizeof(SplPar2D));
+  spl->xacc=gsl_interp_accel_alloc();
+  spl->yacc=gsl_interp_accel_alloc();
+  const gsl_interp2d_type *T = gsl_interp2d_bilinear;
+  spl->spline=gsl_spline2d_alloc(T, nx, ny);
+  gsl_spline2d_init(spl->spline,x,y,z,nx,ny);
+  spl->x0=x[0];
+  spl->xf=x[nx-1];
+  spl->y0=y[0];
+  spl->yf=y[ny-1];
+  spl->z0=z0;
+  spl->zf=zf;
+  return spl;
+}
+
+int spline2D_inspline(double x, double y,  SplPar2D *spl)
+{
+  if ((x>=spl->x0) && (x<=spl->xf) &&
+      (y>=spl->y0) && (y<=spl->yf))
+    return 1;
+  else
+    return 0;
+}
+
+double spline2D_eval(double x, double y,  SplPar2D *spl)
+{
+  return gsl_spline2d_eval(spl->spline,x,y,spl->xacc, spl->yacc);
+}
+
+void spline2d_free(SplPar2D *spl)
+{
+  gsl_interp_accel_free(spl->xacc);
+  gsl_interp_accel_free(spl->yacc);
+  gsl_spline2d_free(spl->spline);
+  free(spl);
+}
+
 RunParams *param_new(void)
 {
   RunParams *par=(RunParams *)my_malloc(sizeof(RunParams));

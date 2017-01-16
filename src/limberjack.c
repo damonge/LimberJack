@@ -10,6 +10,7 @@ int main(int argc,char **argv)
   sprintf(fname_ini,"%s",argv[1]);
 
   RunParams *par=init_params(fname_ini);
+  if (par->has_lognorm) compute_lognorm_bias(par);
   compute_spectra(par);
   compute_w_theta(par);
   write_output(par);
