@@ -192,7 +192,7 @@ RunParams *init_params(char *fname_ini)
   par->cpar=csm_params_new();
   read_parameter_file(fname_ini,par);
 
-  csm_unset_gsl_eh();
+  csm_unset_gsl_eh(par->cpar);
   if(par->has_bg) {
     double hub;
     csm_background_set(par->cpar,par->om,par->ol,par->ob,par->w0,par->wa,par->h0,D_TCMB);

@@ -149,6 +149,17 @@ RunParams *param_new(void)
   par->cl_cc=NULL;
   par->cl_ci=NULL;
   par->cl_ii=NULL;
+  par->cl_dd_s=NULL;
+  par->cl_d1l2_s=NULL;
+  par->cl_d2l1_s=NULL;
+  par->cl_dc_s=NULL;
+  par->cl_di_s=NULL;
+  par->cl_ll_s=NULL;
+  par->cl_lc_s=NULL;
+  par->cl_li_s=NULL;
+  par->cl_cc_s=NULL;
+  par->cl_ci_s=NULL;
+  par->cl_ii_s=NULL;
   par->do_w_theta=0;
   par->th_min=0;
   par->th_max=10.;
@@ -166,12 +177,18 @@ RunParams *param_new(void)
   par->wt_cc=NULL;
   par->wt_ci=NULL;
   par->wt_ii=NULL;
+  par->l_logstep=1.05;
+  par->l_linstep=20;
+  par->n_ell=-1;
+  par->l_sampling_arr=NULL;
   return par;
 }
 
 void param_free(RunParams *par)
 {
   csm_params_free(par->cpar);
+  if(par->n_ell>0)
+    free(par->l_sampling_arr);
   if(par->has_bg) {
     spline_free(par->aofchi);
     spline_free(par->zofchi);
@@ -186,11 +203,14 @@ void param_free(RunParams *par)
   }
   if(par->do_nc) {
     free(par->cl_dd);
+    spline_free(par->cl_dd_s);
     if(par->do_w_theta)
       free(par->wt_dd);
     if(par->do_shear) {
       free(par->cl_d1l2);
       free(par->cl_d2l1);
+      spline_free(par->cl_d1l2_s);
+      spline_free(par->cl_d2l1_s);
       if(par->do_w_theta) {
 	free(par->wt_d1l2);
 	free(par->wt_d2l1);
@@ -198,11 +218,13 @@ void param_free(RunParams *par)
     }
     if(par->do_cmblens) {
       free(par->cl_dc);
+      spline_free(par->cl_dc_s);
       if(par->do_w_theta)
 	free(par->wt_dc);
     }
     if(par->do_isw) {
       free(par->cl_di);
+      spline_free(par->cl_di_s);
       if(par->do_w_theta)
 	free(par->wt_di);
     }
@@ -220,6 +242,7 @@ void param_free(RunParams *par)
     spline_free(par->wind_L[1]);
     free(par->wind_L);
     free(par->cl_ll);
+    spline_free(par->cl_ll_s);
     if(par->has_intrinsic_alignment) {
       spline_free(par->abias);
     }
@@ -229,25 +252,33 @@ void param_free(RunParams *par)
     }
     if(par->do_cmblens) {
       free(par->cl_lc);
+      spline_free(par->cl_lc_s);
       if(par->do_w_theta)
 	free(par->wt_lc);
     }
     if(par->do_isw) {
       free(par->cl_li);
+      spline_free(par->cl_li_s);
       if(par->do_w_theta)
 	free(par->wt_li);
     }
   }
   if(par->do_cmblens) {
     free(par->cl_cc);
+    spline_free(par->cl_cc_s);
     if(par->do_isw) {
       free(par->cl_ci);
+      spline_free(par->cl_ci_s);
       if(par->do_w_theta)
 	free(par->wt_ci);
     }
   }
-  if(par->do_isw)
+  if(par->do_isw) {
     free(par->cl_ii);
+    spline_free(par->cl_di_s);
+    if(par->do_w_theta)
+      free(par->wt_ii);
+  }
 
   free(par);
 }

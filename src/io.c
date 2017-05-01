@@ -1,5 +1,44 @@
 #include "common.h"
 
+static void get_l_sampling(RunParams *par)
+{
+  int i_ell=0,ell0=0;
+  int increment=LJ_MAX(((int)(ell0*(par->l_logstep-1))),1);
+
+  while((ell0<par->lmax) && (increment < par->l_linstep)) {
+    i_ell++;
+    ell0+=increment;
+    increment=LJ_MAX(((int)(ell0*(par->l_logstep-1))),1);
+  }
+
+  increment=par->l_linstep;
+  while(ell0<par->lmax) {
+    i_ell++;
+    ell0+=increment;
+  }
+
+  par->n_ell=i_ell+1;
+  par->l_sampling_arr=my_malloc(par->n_ell*sizeof(int));
+
+  i_ell=0;
+  ell0=0;
+  increment=LJ_MAX(((int)(ell0*(par->l_logstep-1))),1);
+  while((ell0<par->lmax) && (increment < par->l_linstep)) {
+    par->l_sampling_arr[i_ell]=ell0;
+    i_ell++;
+    ell0+=increment;
+    increment=LJ_MAX(((int)(ell0*(par->l_logstep-1))),1);
+  }
+
+  increment=par->l_linstep;
+  while(ell0<par->lmax) {
+    par->l_sampling_arr[i_ell]=ell0;
+    i_ell++;
+    ell0+=increment;
+  }
+  par->l_sampling_arr[i_ell]=ell0;
+}
+
 static void write_wt_single(int n_th,int n_th_logint,int th_min,int th_max,int do_logbin,
 			    double *wt,char *prefix,char *suffix)
 {
@@ -210,6 +249,8 @@ int read_parameter_file(char *fname,RunParams *par)
     par->do_w_theta_logbin=0;
   
   par->has_bg=1;
+
+  get_l_sampling(par);
 
   return 0;
 }

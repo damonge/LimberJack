@@ -24,24 +24,30 @@ static double cl_integrand(double lk,void *params)
 static void get_k_interval(RunParams *par,char *tr1,char *tr2,int l,double *lkmin,double *lkmax)
 {
   double chimin,chimax;
-  if(!strcmp(tr1,"nc")) {
-    if(!strcmp(tr2,"nc")) {
-      chimin=fmax(par->chimin_nc[0],par->chimin_nc[1]);
-      chimax=fmin(par->chimax_nc[0],par->chimax_nc[1]);
-    }
-    else {
-      chimin=par->chimin_nc[0];
-      chimax=par->chimax_nc[0];
-    }
-  }
-  else if(!strcmp(tr2,"nc")) {
-    chimin=par->chimin_nc[1];
-    chimax=par->chimax_nc[1];
+  if(l<par->l_limber_min) {
+    chimin=2*(l+0.5)/pow(10.,D_LKMAX);
+    chimax=0.5*(l+0.5)/pow(10.,D_LKMIN);
   }
   else {
-    chimin=0.5*(l+0.5)/pow(10.,D_LKMAX);
-    chimax=2*(l+0.5)/pow(10.,D_LKMIN);
-  }
+    if(!strcmp(tr1,"nc")) {
+      if(!strcmp(tr2,"nc")) {
+	chimin=fmax(par->chimin_nc[0],par->chimin_nc[1]);
+	chimax=fmin(par->chimax_nc[0],par->chimax_nc[1]);
+      }
+      else {
+	chimin=par->chimin_nc[0];
+	chimax=par->chimax_nc[0];
+      }
+    }
+    else if(!strcmp(tr2,"nc")) {
+      chimin=par->chimin_nc[1];
+      chimax=par->chimax_nc[1];
+    }
+    else {
+      chimin=0.5*(l+0.5)/pow(10.,D_LKMAX);
+      chimax=2*(l+0.5)/pow(10.,D_LKMIN);
+    }
+  }    
 
   if(chimin<=0)
     chimin=0.5*(l+0.5)/pow(10.,D_LKMAX);
@@ -72,48 +78,109 @@ static double spectra(char *tr1,char *tr2,int l,RunParams *par)
 
 void compute_spectra(RunParams *par)
 {
+  double *l_sampling=my_malloc(par->n_ell*sizeof(double));
+
   printf("Computing power spectra\n");
 #ifdef _HAS_OMP
-#pragma omp parallel default(none) shared(par)
+#pragma omp parallel default(none) shared(par,l_sampling)
   {
 #endif //_HAS_OMP
-    int l;
+    int ii;
 #ifdef _HAS_OMP
 #pragma omp for schedule(dynamic)
 #endif //_HAS_OMP
-    for(l=0;l<=par->lmax;l++) {
+    for(ii=0;ii<par->n_ell;ii++) {
+      int l=par->l_sampling_arr[ii];
 #ifdef _DEBUG
       printf("%d \n",l);
 #endif //_DEBUG
+      l_sampling[ii]=l;
       if(par->do_nc) {
-	par->cl_dd[l]=spectra("nc","nc",l,par);
+	par->cl_dd[ii]=spectra("nc","nc",l,par);
 	if(par->do_shear) {
-	  par->cl_d1l2[l]=spectra("nc","shear",l,par);
-	  par->cl_d2l1[l]=spectra("shear","nc",l,par);
+	  par->cl_d1l2[ii]=spectra("nc","shear",l,par);
+	  par->cl_d2l1[ii]=spectra("shear","nc",l,par);
 	}
 	if(par->do_cmblens)
-	  par->cl_dc[l]=spectra("nc","cmblens",l,par);
+	  par->cl_dc[ii]=spectra("nc","cmblens",l,par);
 	if(par->do_isw)
-	  par->cl_di[l]=spectra("nc","isw",l,par);
+	  par->cl_di[ii]=spectra("nc","isw",l,par);
       }
       if(par->do_shear) {
-	par->cl_ll[l]=spectra("shear","shear",l,par);
+	par->cl_ll[ii]=spectra("shear","shear",l,par);
 	if(par->do_cmblens)
-	  par->cl_lc[l]=spectra("shear","cmblens",l,par);
+	  par->cl_lc[ii]=spectra("shear","cmblens",l,par);
 	if(par->do_isw)
-	  par->cl_li[l]=spectra("shear","isw",l,par);
+	  par->cl_li[ii]=spectra("shear","isw",l,par);
       }
       if(par->do_cmblens) {
-	par->cl_cc[l]=spectra("cmblens","cmblens",l,par);
+	par->cl_cc[ii]=spectra("cmblens","cmblens",l,par);
 	if(par->do_isw)
-	  par->cl_ci[l]=spectra("cmblens","isw",l,par);
+	  par->cl_ci[ii]=spectra("cmblens","isw",l,par);
       }
       if(par->do_isw)
-	par->cl_ii[l]=spectra("isw","isw",l,par);
+	par->cl_ii[ii]=spectra("isw","isw",l,par);
     } //end omp for
 #ifdef _HAS_OMP
   } //end omp parallel
 #endif //_HAS_OMP
+
+  //Initialize splines
+  if(par->do_nc) {
+    par->cl_dd_s=spline_init(par->n_ell,l_sampling,par->cl_dd,0,0);
+    if(par->do_shear) {
+      par->cl_d1l2_s=spline_init(par->n_ell,l_sampling,par->cl_d1l2,0,0);
+      par->cl_d2l1_s=spline_init(par->n_ell,l_sampling,par->cl_d2l1,0,0);
+    }
+    if(par->do_cmblens)
+      par->cl_dc_s=spline_init(par->n_ell,l_sampling,par->cl_dc,0,0);
+    if(par->do_isw)
+      par->cl_di_s=spline_init(par->n_ell,l_sampling,par->cl_di,0,0);
+  }
+  if(par->do_shear) {
+    par->cl_ll_s=spline_init(par->n_ell,l_sampling,par->cl_ll,0,0);
+    if(par->do_cmblens)
+      par->cl_lc_s=spline_init(par->n_ell,l_sampling,par->cl_lc,0,0);
+    if(par->do_isw)
+      par->cl_li_s=spline_init(par->n_ell,l_sampling,par->cl_li,0,0);
+  }
+  if(par->do_cmblens) {
+    par->cl_cc_s=spline_init(par->n_ell,l_sampling,par->cl_cc,0,0);
+    if(par->do_isw)
+      par->cl_ci_s=spline_init(par->n_ell,l_sampling,par->cl_ci,0,0);
+  }
+  if(par->do_isw)
+    par->cl_ii_s=spline_init(par->n_ell,l_sampling,par->cl_ii,0,0);
+  
+  //Sample into arrays of delta_ell=1
+  int ell;
+  for(ell=0;ell<=par->lmax;ell++) {
+    if(par->do_nc) {
+      par->cl_dd[ell]=spline_eval((double)ell,par->cl_dd_s);
+      if(par->do_shear) {
+	par->cl_d1l2[ell]=spline_eval((double)ell,par->cl_d1l2_s);
+	par->cl_d2l1[ell]=spline_eval((double)ell,par->cl_d2l1_s);
+      }
+      if(par->do_cmblens)
+	par->cl_dc[ell]=spline_eval((double)ell,par->cl_dc_s);
+      if(par->do_isw)
+	par->cl_di[ell]=spline_eval((double)ell,par->cl_di_s);
+    }
+    if(par->do_shear) {
+      par->cl_ll[ell]=spline_eval((double)ell,par->cl_ll_s);
+      if(par->do_cmblens)
+	par->cl_lc[ell]=spline_eval((double)ell,par->cl_lc_s);
+      if(par->do_isw)
+	par->cl_li[ell]=spline_eval((double)ell,par->cl_li_s);
+    }
+    if(par->do_cmblens) {
+      par->cl_cc[ell]=spline_eval((double)ell,par->cl_cc_s);
+      if(par->do_isw)
+	par->cl_ci[ell]=spline_eval((double)ell,par->cl_ci_s);
+    }
+    if(par->do_isw)
+      par->cl_ii[ell]=spline_eval((double)ell,par->cl_ii_s);
+  }
 }
 
 typedef struct {

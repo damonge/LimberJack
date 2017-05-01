@@ -11,6 +11,9 @@
 #include "params.h"
 #include "cosmo_mad.h"
 
+#define LJ_MIN(a, b)  (((a) < (b)) ? (a) : (b))
+#define LJ_MAX(a, b)  (((a) > (b)) ? (a) : (b))
+
 typedef struct {
   gsl_interp_accel *intacc;
   gsl_spline *spline;
@@ -61,6 +64,21 @@ typedef struct {
   SplPar *bias;
   SplPar *sbias;
   SplPar *abias;
+  double l_logstep;
+  int l_linstep;
+  int n_ell;
+  int *l_sampling_arr;
+  SplPar *cl_dd_s; 
+  SplPar *cl_d1l2_s;
+  SplPar *cl_d2l1_s;
+  SplPar *cl_dc_s; 
+  SplPar *cl_di_s; 
+  SplPar *cl_ll_s; 
+  SplPar *cl_lc_s; 
+  SplPar *cl_li_s; 
+  SplPar *cl_cc_s; 
+  SplPar *cl_ci_s; 
+  SplPar *cl_ii_s; 
   double *cl_dd;
   double *cl_d1l2;
   double *cl_d2l1;
@@ -90,6 +108,7 @@ typedef struct {
   double *wt_cc;
   double *wt_ci;
   double *wt_ii;
+
 } RunParams;
 
 //Defined in common.c
