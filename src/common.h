@@ -23,12 +23,14 @@ typedef struct {
   double w0,wa,h0;
   double ns,s8;
   char **fname_window;
-  char fname_bias[256];
+  char **fname_bias;
   char fname_sbias[256];
   char fname_abias[256];
   char fname_pk[256];
+  char fname_ells[256];
   char prefix_out[256];
-  int lmax;
+  int n_ell;
+  int *ells;
   Csm_params *cpar;
   double chi_horizon;
   double z_kappa;
@@ -40,6 +42,7 @@ typedef struct {
   double prefac_lensing;
   double dchi;
   double r_smooth;
+  int is_vel[2];
   int l_limber_min;
   int do_nc;
   int do_shear;
@@ -58,7 +61,7 @@ typedef struct {
   SplPar **wind_0;
   SplPar **wind_M;
   SplPar **wind_L;
-  SplPar *bias;
+  SplPar **bias;
   SplPar *sbias;
   SplPar *abias;
   double *cl_dd;

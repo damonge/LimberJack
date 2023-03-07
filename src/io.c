@@ -5,7 +5,7 @@ static void write_wt_single(int n_th,int n_th_logint,int th_min,int th_max,int d
 {
   int ith;
   FILE *fo;
-  char fname[256];
+  char fname[1024];
 
   sprintf(fname,"%s_wt_%s.txt",prefix,suffix);
   fo=my_fopen(fname,"w");
@@ -20,46 +20,46 @@ static void write_wt_single(int n_th,int n_th_logint,int th_min,int th_max,int d
   fclose(fo);
 }
 
-static void write_cl_single(int lmax,double *cl,char *prefix,char *suffix)
+static void write_cl_single(int n_ell,int *ells,double *cl,char *prefix,char *suffix)
 {
-  int l;
+  int il;
   FILE *fo;
-  char fname[256];
+  char fname[1024];
 
   sprintf(fname,"%s_cl_%s.txt",prefix,suffix);
   fo=my_fopen(fname,"w");
-  for(l=0;l<=lmax;l++)
-    fprintf(fo,"%d %lE\n",l,cl[l]);
+  for(il=0;il<n_ell;il++)
+    fprintf(fo,"%d %lE\n",ells[il],cl[il]);
   fclose(fo);
 }
 
 void write_output(RunParams *par)
 {
   if(par->do_nc) {
-    write_cl_single(par->lmax,par->cl_dd,par->prefix_out,"dd");
+    write_cl_single(par->n_ell,par->ells,par->cl_dd,par->prefix_out,"dd");
     if(par->do_shear) {
-      write_cl_single(par->lmax,par->cl_d1l2,par->prefix_out,"d1l2");
-      write_cl_single(par->lmax,par->cl_d2l1,par->prefix_out,"d2l1");
+      write_cl_single(par->n_ell,par->ells,par->cl_d1l2,par->prefix_out,"d1l2");
+      write_cl_single(par->n_ell,par->ells,par->cl_d2l1,par->prefix_out,"d2l1");
     }
     if(par->do_cmblens)
-      write_cl_single(par->lmax,par->cl_dc,par->prefix_out,"dc");
+      write_cl_single(par->n_ell,par->ells,par->cl_dc,par->prefix_out,"dc");
     if(par->do_isw)
-      write_cl_single(par->lmax,par->cl_di,par->prefix_out,"di");
+      write_cl_single(par->n_ell,par->ells,par->cl_di,par->prefix_out,"di");
   }
   if(par->do_shear) {
-    write_cl_single(par->lmax,par->cl_ll,par->prefix_out,"ll");
+    write_cl_single(par->n_ell,par->ells,par->cl_ll,par->prefix_out,"ll");
     if(par->do_cmblens)
-      write_cl_single(par->lmax,par->cl_lc,par->prefix_out,"lc");
+      write_cl_single(par->n_ell,par->ells,par->cl_lc,par->prefix_out,"lc");
     if(par->do_isw)
-      write_cl_single(par->lmax,par->cl_li,par->prefix_out,"li");
+      write_cl_single(par->n_ell,par->ells,par->cl_li,par->prefix_out,"li");
   }
   if(par->do_cmblens) {
-    write_cl_single(par->lmax,par->cl_cc,par->prefix_out,"cc");
+    write_cl_single(par->n_ell,par->ells,par->cl_cc,par->prefix_out,"cc");
     if(par->do_isw)
-      write_cl_single(par->lmax,par->cl_ci,par->prefix_out,"ci");
+      write_cl_single(par->n_ell,par->ells,par->cl_ci,par->prefix_out,"ci");
   }
   if(par->do_isw)
-    write_cl_single(par->lmax,par->cl_ii,par->prefix_out,"ii");
+    write_cl_single(par->n_ell,par->ells,par->cl_ii,par->prefix_out,"ii");
 
   if(par->do_w_theta) {
     if(par->do_nc) {
@@ -152,8 +152,8 @@ int read_parameter_file(char *fname,RunParams *par)
       par->z_isw=atof(s2);
     else if(!strcmp(s1,"r_smooth="))
       par->r_smooth=atof(s2);
-    else if(!strcmp(s1,"l_max="))
-      par->lmax=atoi(s2);
+    else if(!strcmp(s1,"ell_list="))
+      sprintf(par->fname_ells,"%s",s2);
     else if(!strcmp(s1,"do_nc="))
       par->do_nc=atoi(s2);
     else if(!strcmp(s1,"has_nc_dens="))
@@ -166,6 +166,10 @@ int read_parameter_file(char *fname,RunParams *par)
       par->do_shear=atoi(s2);
     else if(!strcmp(s1,"has_sh_intrinsic="))
       par->has_intrinsic_alignment=atoi(s2);
+    else if(!strcmp(s1,"is_vel_1="))
+      par->is_vel[0]=atoi(s2);
+    else if(!strcmp(s1,"is_vel_2="))
+      par->is_vel[1]=atoi(s2);
     else if(!strcmp(s1,"do_cmblens="))
       par->do_cmblens=atoi(s2);
     else if(!strcmp(s1,"do_isw="))
@@ -186,8 +190,10 @@ int read_parameter_file(char *fname,RunParams *par)
       sprintf(par->fname_window[0],"%s",s2);
     else if(!strcmp(s1,"window_2_fname="))
       sprintf(par->fname_window[1],"%s",s2);
-    else if(!strcmp(s1,"bias_fname="))
-      sprintf(par->fname_bias,"%s",s2);
+    else if(!strcmp(s1,"bias_1_fname="))
+      sprintf(par->fname_bias[0],"%s",s2);
+    else if(!strcmp(s1,"bias_2_fname="))
+      sprintf(par->fname_bias[1],"%s",s2);
     else if(!strcmp(s1,"sbias_fname="))
       sprintf(par->fname_sbias,"%s",s2);
     else if(!strcmp(s1,"abias_fname="))

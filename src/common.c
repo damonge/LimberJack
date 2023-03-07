@@ -96,15 +96,23 @@ RunParams *param_new(void)
   par->fname_window=my_malloc(2*sizeof(char *));
   par->fname_window[0]=my_malloc(256*sizeof(char));
   par->fname_window[1]=my_malloc(256*sizeof(char));
+  par->fname_bias=my_malloc(2*sizeof(char *));
+  par->fname_bias[0]=my_malloc(256*sizeof(char));
+  par->fname_bias[1]=my_malloc(256*sizeof(char));
+  sprintf(par->fname_ells,"default");
   sprintf(par->fname_window[0],"default");
   sprintf(par->fname_window[1],"default");
-  sprintf(par->fname_bias,"default");
+  sprintf(par->fname_bias[0],"default");
+  sprintf(par->fname_bias[1],"default");
   sprintf(par->fname_sbias,"default");
   sprintf(par->fname_abias,"default");
   sprintf(par->fname_pk,"default");
   sprintf(par->prefix_out,"default");
-  par->lmax=100;
+  par->n_ell=-1;
+  par->ells=NULL;
   par->l_limber_min=1000;
+  par->is_vel[0]=0;
+  par->is_vel[1]=0;
   par->cpar=NULL;
   par->chi_horizon=-1.;
   par->chi_kappa=-1.;
@@ -172,6 +180,14 @@ RunParams *param_new(void)
 void param_free(RunParams *par)
 {
   csm_params_free(par->cpar);
+  free(par->fname_window[0]);
+  free(par->fname_window[1]);
+  free(par->fname_window);
+  free(par->fname_bias[0]);
+  free(par->fname_bias[1]);
+  free(par->fname_bias);
+  if(par->n_ell>=0)
+    free(par->ells);
   if(par->has_bg) {
     spline_free(par->aofchi);
     spline_free(par->zofchi);
@@ -206,8 +222,11 @@ void param_free(RunParams *par)
       if(par->do_w_theta)
 	free(par->wt_di);
     }
-    if(par->has_dens)
-      spline_free(par->bias);
+    if(par->has_dens) {
+      spline_free(par->bias[0]);
+      spline_free(par->bias[1]);
+      free(par->bias);
+    }
     if(par->has_lensing) {
       spline_free(par->sbias);
       spline_free(par->wind_M[0]);
