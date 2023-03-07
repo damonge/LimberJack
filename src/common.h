@@ -27,8 +27,10 @@ typedef struct {
   char fname_sbias[256];
   char fname_abias[256];
   char fname_pk[256];
+  char fname_ells[256];
   char prefix_out[256];
-  int lmax;
+  int n_ell;
+  int *ells;
   Csm_params *cpar;
   double chi_horizon;
   double z_kappa;

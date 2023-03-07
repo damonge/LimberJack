@@ -246,32 +246,45 @@ RunParams *init_params(char *fname_ini)
     free(x); free(a); free(y);
   }
 
+  //Read ells
+  printf("Reading ells %s\n",par->fname_ells);
+  fi=my_fopen(par->fname_ells,"r");
+  par->n_ell=my_linecount(fi); rewind(fi);
+  //Read ells
+  par->ells=(int *)my_malloc(par->n_ell*sizeof(int));
+  for(ii=0;ii<par->n_ell;ii++) {
+    stat=fscanf(fi,"%d",&(par->ells[ii]));
+    if(stat!=1)
+      report_error(1,"Error reading file, line %d\n",ii+1);
+  }
+  fclose(fi);
+
   //Allocate power spectra
   if(par->do_nc) {
-    par->cl_dd=(double *)my_malloc((par->lmax+1)*sizeof(double));
+    par->cl_dd=(double *)my_malloc(par->n_ell*sizeof(double));
     if(par->do_shear) {
-      par->cl_d1l2=(double *)my_malloc((par->lmax+1)*sizeof(double));
-      par->cl_d2l1=(double *)my_malloc((par->lmax+1)*sizeof(double));
+      par->cl_d1l2=(double *)my_malloc(par->n_ell*sizeof(double));
+      par->cl_d2l1=(double *)my_malloc(par->n_ell*sizeof(double));
     }
     if(par->do_cmblens)
-      par->cl_dc=(double *)my_malloc((par->lmax+1)*sizeof(double));
+      par->cl_dc=(double *)my_malloc(par->n_ell*sizeof(double));
     if(par->do_isw)
-      par->cl_di=(double *)my_malloc((par->lmax+1)*sizeof(double));
+      par->cl_di=(double *)my_malloc(par->n_ell*sizeof(double));
   }
   if(par->do_shear) {
-    par->cl_ll=(double *)my_malloc((par->lmax+1)*sizeof(double));
+    par->cl_ll=(double *)my_malloc(par->n_ell*sizeof(double));
     if(par->do_cmblens)
-      par->cl_lc=(double *)my_malloc((par->lmax+1)*sizeof(double));
+      par->cl_lc=(double *)my_malloc(par->n_ell*sizeof(double));
     if(par->do_isw)
-      par->cl_li=(double *)my_malloc((par->lmax+1)*sizeof(double));
+      par->cl_li=(double *)my_malloc(par->n_ell*sizeof(double));
   }
   if(par->do_cmblens) {
-    par->cl_cc=(double *)my_malloc((par->lmax+1)*sizeof(double));
+    par->cl_cc=(double *)my_malloc(par->n_ell*sizeof(double));
     if(par->do_isw)
-      par->cl_ci=(double *)my_malloc((par->lmax+1)*sizeof(double));
+      par->cl_ci=(double *)my_malloc(par->n_ell*sizeof(double));
   }
   if(par->do_isw)
-    par->cl_ii=(double *)my_malloc((par->lmax+1)*sizeof(double));
+    par->cl_ii=(double *)my_malloc(par->n_ell*sizeof(double));
 
   if(par->do_w_theta) {
     if(par->do_nc) {

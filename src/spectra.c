@@ -77,39 +77,40 @@ void compute_spectra(RunParams *par)
 #pragma omp parallel default(none) shared(par)
   {
 #endif //_HAS_OMP
-    int l;
+    int il;
 #ifdef _HAS_OMP
 #pragma omp for schedule(dynamic)
 #endif //_HAS_OMP
-    for(l=0;l<=par->lmax;l++) {
+    for(il=0;il<par->n_ell;il++) {
+      int l=par->ells[il];
 #ifdef _DEBUG
       printf("%d \n",l);
 #endif //_DEBUG
       if(par->do_nc) {
-	par->cl_dd[l]=spectra("nc","nc",l,par);
+	par->cl_dd[il]=spectra("nc","nc",l,par);
 	if(par->do_shear) {
-	  par->cl_d1l2[l]=spectra("nc","shear",l,par);
-	  par->cl_d2l1[l]=spectra("shear","nc",l,par);
+	  par->cl_d1l2[il]=spectra("nc","shear",l,par);
+	  par->cl_d2l1[il]=spectra("shear","nc",l,par);
 	}
 	if(par->do_cmblens)
-	  par->cl_dc[l]=spectra("nc","cmblens",l,par);
+	  par->cl_dc[il]=spectra("nc","cmblens",l,par);
 	if(par->do_isw)
-	  par->cl_di[l]=spectra("nc","isw",l,par);
+	  par->cl_di[il]=spectra("nc","isw",l,par);
       }
       if(par->do_shear) {
-	par->cl_ll[l]=spectra("shear","shear",l,par);
+	par->cl_ll[il]=spectra("shear","shear",l,par);
 	if(par->do_cmblens)
-	  par->cl_lc[l]=spectra("shear","cmblens",l,par);
+	  par->cl_lc[il]=spectra("shear","cmblens",l,par);
 	if(par->do_isw)
-	  par->cl_li[l]=spectra("shear","isw",l,par);
+	  par->cl_li[il]=spectra("shear","isw",l,par);
       }
       if(par->do_cmblens) {
-	par->cl_cc[l]=spectra("cmblens","cmblens",l,par);
+	par->cl_cc[il]=spectra("cmblens","cmblens",l,par);
 	if(par->do_isw)
-	  par->cl_ci[l]=spectra("cmblens","isw",l,par);
+	  par->cl_ci[il]=spectra("cmblens","isw",l,par);
       }
       if(par->do_isw)
-	par->cl_ii[l]=spectra("isw","isw",l,par);
+	par->cl_ii[il]=spectra("isw","isw",l,par);
     } //end omp for
 #ifdef _HAS_OMP
   } //end omp parallel
@@ -151,7 +152,7 @@ static void compute_wt_single(RunParams *par,double *cl,double *wt,double *llist
     double result,eresult;
     gsl_function F;
     gsl_integration_workspace *w=gsl_integration_workspace_alloc(1000);
-    SplPar *clsp=spline_init((par->lmax+1),llist,cl,0,0);
+    SplPar *clsp=spline_init(par->n_ell,llist,cl,0,0);
     IntWtPar ipar;
 
     ipar.i_bessel=bessel_order;
@@ -169,7 +170,7 @@ static void compute_wt_single(RunParams *par,double *cl,double *wt,double *llist
 	ipar.th=DTOR*(par->th_min+(par->th_max-par->th_min)*(ith+0.5)/par->n_th);
       F.function=&wt_integrand;
       F.params=&ipar;
-      gsl_integration_qag(&F,llist[0],llist[par->lmax],0,1E-4,1000,GSL_INTEG_GAUSS41,w,&result,&eresult);
+      gsl_integration_qag(&F,llist[0],llist[par->n_ell-1],0,1E-4,1000,GSL_INTEG_GAUSS41,w,&result,&eresult);
       wt[ith]=result/(2*M_PI);
     }//end omp for
     gsl_integration_workspace_free(w);
@@ -182,14 +183,14 @@ static void compute_wt_single(RunParams *par,double *cl,double *wt,double *llist
 void compute_w_theta(RunParams *par)
 {
   if(par->do_w_theta) {
-    int l;
+    int il;
     double *llist;
 
     printf("Computing correlation functions\n");
 
-    llist=my_malloc((par->lmax+1)*sizeof(double));
-    for(l=0;l<=par->lmax;l++)
-      llist[l]=(float)l;
+    llist=my_malloc(par->n_ell*sizeof(double));
+    for(il=0;il<par->n_ell;il++)
+      llist[il]=(double)(par->ells[il]);
 
     if(par->do_nc) {
       compute_wt_single(par,par->cl_dd,par->wt_dd,llist,0);
