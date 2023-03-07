@@ -5,7 +5,7 @@ static void write_wt_single(int n_th,int n_th_logint,int th_min,int th_max,int d
 {
   int ith;
   FILE *fo;
-  char fname[256];
+  char fname[1024];
 
   sprintf(fname,"%s_wt_%s.txt",prefix,suffix);
   fo=my_fopen(fname,"w");
@@ -24,7 +24,7 @@ static void write_cl_single(int lmax,double *cl,char *prefix,char *suffix)
 {
   int l;
   FILE *fo;
-  char fname[256];
+  char fname[1024];
 
   sprintf(fname,"%s_cl_%s.txt",prefix,suffix);
   fo=my_fopen(fname,"w");
@@ -186,8 +186,10 @@ int read_parameter_file(char *fname,RunParams *par)
       sprintf(par->fname_window[0],"%s",s2);
     else if(!strcmp(s1,"window_2_fname="))
       sprintf(par->fname_window[1],"%s",s2);
-    else if(!strcmp(s1,"bias_fname="))
-      sprintf(par->fname_bias,"%s",s2);
+    else if(!strcmp(s1,"bias_1_fname="))
+      sprintf(par->fname_bias[0],"%s",s2);
+    else if(!strcmp(s1,"bias_2_fname="))
+      sprintf(par->fname_bias[1],"%s",s2);
     else if(!strcmp(s1,"sbias_fname="))
       sprintf(par->fname_sbias,"%s",s2);
     else if(!strcmp(s1,"abias_fname="))

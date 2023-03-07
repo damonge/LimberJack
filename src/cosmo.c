@@ -136,7 +136,7 @@ static double window_lensing(double chi,RunParams *par,int i_window)
 static void print_bg(RunParams *par)
 {
   int ii,icol;
-  char fname[256];
+  char fname[1024];
   FILE *fo;
   double zmax=fmax(par->wind_0[0]->xf,par->wind_0[1]->xf);
   sprintf(fname,"%s_bg.db",par->prefix_out);
@@ -192,7 +192,7 @@ RunParams *init_params(char *fname_ini)
   par->cpar=csm_params_new();
   read_parameter_file(fname_ini,par);
 
-  csm_unset_gsl_eh();
+  csm_unset_gsl_eh(par->cpar);
   if(par->has_bg) {
     double hub;
     csm_background_set(par->cpar,par->om,par->ol,par->ob,par->w0,par->wa,par->h0,D_TCMB);
@@ -362,20 +362,23 @@ RunParams *init_params(char *fname_ini)
 
   if(par->do_nc) {
     if(par->has_dens==1) {
-      printf("Reading bias function %s\n",par->fname_bias);
-      fi=my_fopen(par->fname_bias,"r");
-      n=my_linecount(fi); rewind(fi);
-      //Read bias
-      x=(double *)my_malloc(n*sizeof(double));
-      y=(double *)my_malloc(n*sizeof(double));
-      for(ii=0;ii<n;ii++) {
-	stat=fscanf(fi,"%lE %lE",&(x[ii]),&(y[ii]));
-	if(stat!=2)
-	  report_error(1,"Error reading file, line %d\n",ii+1);
+      par->bias=my_malloc(2*sizeof(SplPar *));
+      for(ibin=0;ibin<2;ibin++) {
+	printf("Reading bias function %s\n",par->fname_bias[ibin]);
+	fi=my_fopen(par->fname_bias[ibin],"r");
+	n=my_linecount(fi); rewind(fi);
+	//Read bias
+	x=(double *)my_malloc(n*sizeof(double));
+	y=(double *)my_malloc(n*sizeof(double));
+	for(ii=0;ii<n;ii++) {
+	  stat=fscanf(fi,"%lE %lE",&(x[ii]),&(y[ii]));
+	  if(stat!=2)
+	    report_error(1,"Error reading file, line %d\n",ii+1);
+	}
+	fclose(fi);
+	par->bias[ibin]=spline_init(n,x,y,y[0],y[n-1]);
+	free(x); free(y);
       }
-      fclose(fi);
-      par->bias=spline_init(n,x,y,y[0],y[n-1]);
-      free(x); free(y);
     }
 
     if(par->has_lensing==1) {

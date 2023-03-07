@@ -23,7 +23,7 @@ typedef struct {
   double w0,wa,h0;
   double ns,s8;
   char **fname_window;
-  char fname_bias[256];
+  char **fname_bias;
   char fname_sbias[256];
   char fname_abias[256];
   char fname_pk[256];
@@ -58,7 +58,7 @@ typedef struct {
   SplPar **wind_0;
   SplPar **wind_M;
   SplPar **wind_L;
-  SplPar *bias;
+  SplPar **bias;
   SplPar *sbias;
   SplPar *abias;
   double *cl_dd;
