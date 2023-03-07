@@ -111,6 +111,8 @@ RunParams *param_new(void)
   par->n_ell=-1;
   par->ells=NULL;
   par->l_limber_min=1000;
+  par->is_vel[0]=0;
+  par->is_vel[1]=0;
   par->cpar=NULL;
   par->chi_horizon=-1.;
   par->chi_kappa=-1.;

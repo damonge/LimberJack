@@ -18,8 +18,11 @@ static double transfer_dens_nolim(int l,double k,RunParams *par,int ibin)
     double pz=spline_eval(z,par->wind_0[ibin]);
     double bz=spline_eval(z,par->bias[ibin]);
     double jl=csm_j_bessel(l,k*chi);
+    double vfac=1.;
+    if(par->is_vel[ibin])
+      vfac=1./(k*k*chi*chi);
 
-    ret+=h*pz*bz*gf*jl;
+    ret+=h*pz*bz*gf*vfac*jl;
   }
 
   return ret*dchi;
@@ -154,8 +157,11 @@ static double transfer_dens(int l,double k,RunParams *par,int ibin)
   double z=spline_eval(chi,par->zofchi);
   double pz=spline_eval(z,par->wind_0[ibin]);
   double bz=spline_eval(z,par->bias[ibin]);
+  double vfac=1.;
+  if(par->is_vel[ibin])
+    vfac=1./((l+0.5)*(l+0.5));
 
-  return pz*bz*gf*h;
+  return pz*bz*gf*h*vfac;
 }
 
 static double transfer_rsd(int l,double k,RunParams *par,int ibin)

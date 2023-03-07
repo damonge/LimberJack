@@ -166,6 +166,10 @@ int read_parameter_file(char *fname,RunParams *par)
       par->do_shear=atoi(s2);
     else if(!strcmp(s1,"has_sh_intrinsic="))
       par->has_intrinsic_alignment=atoi(s2);
+    else if(!strcmp(s1,"is_vel_1="))
+      par->is_vel[0]=atoi(s2);
+    else if(!strcmp(s1,"is_vel_2="))
+      par->is_vel[1]=atoi(s2);
     else if(!strcmp(s1,"do_cmblens="))
       par->do_cmblens=atoi(s2);
     else if(!strcmp(s1,"do_isw="))
